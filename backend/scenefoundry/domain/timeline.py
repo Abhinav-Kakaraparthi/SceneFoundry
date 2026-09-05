@@ -9,7 +9,7 @@ class FrameRange(BaseModel):
     model_config = ConfigDict(strict=True, frozen=True, extra="forbid")
 
     start: int = Field(ge=0)
-    end: int = Field(gt=0)
+    end: int = Field(ge=1)
 
     @model_validator(mode="after")
     def validate_order(self) -> Self:
