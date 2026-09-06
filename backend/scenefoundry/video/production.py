@@ -1,6 +1,7 @@
 """Reserve application funds and submit a durable Veo attempt."""
 
 import logging
+import re
 
 from google.cloud import firestore
 
@@ -30,10 +31,31 @@ def start_veo(
     attempt_id: str,
     prompt: str,
     duration_seconds: int = 4,
+    source_attempt_id: str | None = None,
+    source_shot_id: str | None = None,
+    prompt_version: str | None = None,
 ) -> str:
     """Submit a new attempt; leave its reservation pending completion."""
     if not isinstance(prompt, str) or not 1 <= len(prompt.strip()) <= 4000:
         raise ValueError("Video prompt must contain 1 to 4000 characters.")
+    source = {}
+    if any(value is not None for value in (
+        source_attempt_id, source_shot_id, prompt_version
+    )):
+        if (
+            not isinstance(source_attempt_id, str)
+            or not re.fullmatch(r"[0-9a-f]{32}", source_attempt_id)
+            or not isinstance(source_shot_id, str)
+            or not re.fullmatch(r"[a-z][a-z0-9_]{0,63}", source_shot_id)
+            or not isinstance(prompt_version, str)
+            or not prompt_version.strip()
+        ):
+            raise ValueError("Complete source shot provenance is required.")
+        source = {
+            "source_attempt_id": source_attempt_id,
+            "source_shot_id": source_shot_id,
+            "prompt_version": prompt_version,
+        }
     prompt = prompt.strip()
     config = build_veo_config(duration_seconds)
     estimate = estimate_veo_micro_usd(VEO_MODEL, VEO_LOCATION, config)
@@ -52,6 +74,7 @@ def start_veo(
         try:
             attempt.update(
                 {
+                    **source,
                     "kind": "veo_video",
                     "prompt": prompt,
                     "location": VEO_LOCATION,

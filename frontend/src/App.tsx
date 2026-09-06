@@ -1,3 +1,4 @@
+import GenerateVideo from "./GenerateVideo";
 import VeoPreview, { type VeoPreviewRecord } from "./VeoPreview";
 import ShotAnimation, { type AnimationRecord } from "./ShotAnimation";
 import ShotPreview, { type PreviewRecord } from "./ShotPreview";
@@ -200,6 +201,21 @@ export default function App() {
                         </span>
                       </div>
                       <p>{shot.action}</p>
+                      <GenerateVideo
+                        key={`${attemptId}:${shot.shot_id}`}
+                        projectId={projectId}
+                        sourceAttemptId={attemptId}
+                        shotId={shot.shot_id}
+                        frameCount={shot.frames.end - shot.frames.start}
+                        fps={workspace.scene.fps}
+                        availableMicroUsd={workspace.budget.available_micro_usd}
+                        hasVideo={workspace.veoPreviews.some(
+                          (item) =>
+                            item.source_attempt_id === attemptId &&
+                            item.shot_id === shot.shot_id,
+                        )}
+                        onUpdated={() => setRevision((value) => value + 1)}
+                      />
                       <VeoPreview
                         preview={workspace.veoPreviews.find(
                           (item) =>

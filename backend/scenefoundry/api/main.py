@@ -2,6 +2,10 @@ from scenefoundry.api.previews import router as previews_router
 from scenefoundry.api.generation import router as generation_router
 from fastapi import FastAPI
 
+from scenefoundry.api.video_completion import router as video_completion_router
+
+from scenefoundry.api.shot_videos import router as shot_videos_router
+
 from scenefoundry.api.veo import router as veo_router
 
 from scenefoundry.api.scenes import router as scenes_router
@@ -19,3 +23,7 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 app.include_router(veo_router)
+
+app.include_router(shot_videos_router)
+
+app.include_router(video_completion_router)
