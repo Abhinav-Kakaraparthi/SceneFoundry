@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Props = {
   projectId: string;
@@ -36,6 +36,9 @@ export default function GenerateVideo(props: Props) {
   );
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [autoChecking, setAutoChecking] = useState(true);
+  const automaticChecks = useRef(0);
+  const checking = useRef(false);
   const duration = props.frameCount / props.fps;
   const supported = props.fps === 24 && [4, 6, 8].includes(duration);
   const estimate = duration * 100_000;
@@ -64,6 +67,7 @@ export default function GenerateVideo(props: Props) {
       setMessage("Submitted. Check progress shortly.");
       props.onUpdated();
     } catch (error) {
+      setAutoChecking(false);
       setMessage(
         error instanceof Error ? error.message : "Submission could not finish.",
       );
@@ -73,7 +77,8 @@ export default function GenerateVideo(props: Props) {
   }
 
   async function checkProgress() {
-    if (busy || !attemptId) return;
+    if (busy || checking.current || !attemptId) return;
+    checking.current = true;
     setBusy(true);
     setMessage("");
     try {
@@ -81,12 +86,14 @@ export default function GenerateVideo(props: Props) {
         `${base}/videos/${encodeURIComponent(attemptId)}/refresh`,
       );
       if (result.status === "succeeded") {
+        setAutoChecking(false);
         localStorage.removeItem(storageKey);
         setAttemptId(null);
         props.onUpdated();
       } else if (result.status === "running") {
-        setMessage("Veo is still generating. Check again shortly.");
+        setMessage("Veo is still generating.");
       } else if (result.status === "needs_review") {
+        setAutoChecking(false);
         setMessage(
           typeof result.message === "string"
             ? result.message
@@ -96,13 +103,29 @@ export default function GenerateVideo(props: Props) {
         throw new Error("Unexpected video status. The attempt ID is preserved.");
       }
     } catch (error) {
+      setAutoChecking(false);
       setMessage(
         error instanceof Error ? error.message : "Could not check progress.",
       );
     } finally {
+      checking.current = false;
       setBusy(false);
     }
   }
+
+  useEffect(() => {
+    if (!attemptId || busy || !autoChecking) return;
+    if (automaticChecks.current >= 15) {
+      setAutoChecking(false);
+      setMessage("Automatic checks paused. You can check progress manually.");
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      automaticChecks.current += 1;
+      void checkProgress();
+    }, 20_000);
+    return () => window.clearTimeout(timer);
+  }, [attemptId, busy, autoChecking, checkProgress]);
 
   if (props.hasVideo && !attemptId) return null;
   if (!supported && !attemptId) {
@@ -116,6 +139,9 @@ export default function GenerateVideo(props: Props) {
           <button type="button" disabled={busy} onClick={checkProgress}>
             {busy ? "Working..." : "Check video progress"}
           </button>
+          {autoChecking && (
+            <p role="status">Progress updates automatically every 20 seconds.</p>
+          )}
           <p><small>Video attempt: {attemptId}</small></p>
         </>
       ) : (
