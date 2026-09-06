@@ -66,7 +66,7 @@ def add_camera(spec: dict) -> None:
     bpy.context.scene.camera = camera
 
 
-def render_layout(layout: dict, output: Path) -> None:
+def build_scene(layout: dict) -> None:
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene
 
@@ -98,6 +98,12 @@ def render_layout(layout: dict, output: Path) -> None:
     scene.render.resolution_y = 360
     scene.render.resolution_percentage = 100
     scene.render.image_settings.file_format = "PNG"
+
+
+
+def render_layout(layout: dict, output: Path) -> None:
+    build_scene(layout)
+    scene = bpy.context.scene
     scene.render.filepath = str(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.render.render(write_still=True)
