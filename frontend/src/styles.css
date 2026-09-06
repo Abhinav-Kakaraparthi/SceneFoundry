@@ -76,3 +76,39 @@ footer { color: #a5a7b1; font-size: .875rem; margin-top: 24px; }
 @media (max-width: 380px) {
   .metrics { grid-template-columns: 1fr; }
 }
+
+.brief-form {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+}
+.brief-form h2 { margin: 0 0 4px; }
+.brief-form label { font-size: .875rem; color: #d0d1d8; }
+.brief-form textarea {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  padding: 16px;
+  border: 1px solid #494c58;
+  border-radius: 8px;
+  background: #101114;
+  color: #f2f2f3;
+  font: inherit;
+  line-height: 1.6;
+}
+.brief-form textarea:focus-visible {
+  outline: 2px solid #ffaf79;
+  outline-offset: 3px;
+}
+.brief-form textarea:disabled { opacity: .65; }
+.brief-form button { justify-self: start; }
+.brief-form .billing-note { margin: 0; }
+.brief-form [role="status"] { margin: 0; line-height: 1.6; }
+.brief-form [role="status"]:empty { display: none; }
+.attempt-reference {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: #b1b3bd;
+  font: .875rem ui-monospace, monospace;
+}
+.heading + .scene-panel { margin-bottom: 28px; }

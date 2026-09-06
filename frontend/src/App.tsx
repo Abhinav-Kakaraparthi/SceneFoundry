@@ -1,3 +1,4 @@
+import BriefForm from "./BriefForm";
 import { useEffect, useState } from "react";
 
 type Shot = {
@@ -25,7 +26,7 @@ type Workspace =
   | { status: "ready"; scene: Scene; budget: Budget };
 
 const projectId = "demo_cafe";
-const attemptId = "9480269091d94b628b5cf97af3075260";
+const initialAttemptId = "9480269091d94b628b5cf97af3075260";
 const basePath = `/v1/projects/${projectId}`;
 
 const dollars = (micro: number) => `$${(micro / 1_000_000).toFixed(6)}`;
@@ -41,6 +42,7 @@ async function readJson<T>(path: string, signal: AbortSignal): Promise<T> {
 }
 
 export default function App() {
+  const [attemptId, setAttemptId] = useState(initialAttemptId);
   const [workspace, setWorkspace] = useState<Workspace>({ status: "loading" });
   const [revision, setRevision] = useState(0);
 
@@ -70,7 +72,7 @@ export default function App() {
       });
 
     return () => controller.abort();
-  }, [revision]);
+  }, [revision, attemptId]);
 
   return (
     <div className="workspace">
@@ -92,6 +94,8 @@ export default function App() {
             {workspace.status === "loading" ? "Loading…" : "Refresh"}
           </button>
         </div>
+
+        <BriefForm projectId={projectId} onCreated={setAttemptId} />
 
         {workspace.status === "loading" && (
           <p role="status" className="notice">Loading saved production data…</p>
