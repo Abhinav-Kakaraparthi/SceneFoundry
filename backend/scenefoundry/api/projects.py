@@ -1,3 +1,4 @@
+from scenefoundry.storage.animations import AnimationRecord
 from scenefoundry.storage.previews import PreviewRecord
 import os
 from collections.abc import Iterator
@@ -92,3 +93,25 @@ def list_previews(
         record.pop("created_at", None)
         previews.append(PreviewRecord.model_validate(record))
     return previews
+
+@router.get("/{project_id}/attempts/{attempt_id}/animations")
+def list_animations(
+    project_id: ResourceId,
+    attempt_id: ResourceId,
+    db: Database,
+) -> list[AnimationRecord]:
+    attempt = db.document("projects", project_id, "attempts", attempt_id)
+    if not attempt.get(timeout=15).exists:
+        raise HTTPException(404, "Attempt not found.")
+
+    query = (
+        attempt.collection("animations")
+        .order_by("created_at", direction=firestore.Query.DESCENDING)
+        .limit(50)
+    )
+    animations = []
+    for snapshot in query.stream(timeout=15):
+        record = snapshot.to_dict()
+        record.pop("created_at", None)
+        animations.append(AnimationRecord.model_validate(record))
+    return animations

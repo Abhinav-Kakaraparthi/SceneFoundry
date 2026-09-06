@@ -34,3 +34,27 @@ def read_preview(attempt_id: RenderId, revision_id: RenderId) -> FileResponse:
         media_type="image/png",
         headers={"Cache-Control": "no-store"},
     )
+
+@router.get("/animations/{animation_id}/renders/{render_id}/video")
+def read_animation(animation_id: RenderId, render_id: RenderId) -> FileResponse:
+    local_data = os.environ.get("LOCALAPPDATA")
+    if not local_data:
+        raise HTTPException(503, "Local preview storage is not configured.")
+
+    video = (
+        FilePath(local_data)
+        / "SceneFoundry"
+        / "animations"
+        / animation_id
+        / "renders"
+        / render_id
+        / "preview.mp4"
+    )
+    if not video.is_file():
+        raise HTTPException(404, "Animation video not found.")
+
+    return FileResponse(
+        video,
+        media_type="video/mp4",
+        headers={"Cache-Control": "no-store"},
+    )

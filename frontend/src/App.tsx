@@ -1,3 +1,5 @@
+import VeoPreview, { type VeoPreviewRecord } from "./VeoPreview";
+import ShotAnimation, { type AnimationRecord } from "./ShotAnimation";
 import ShotPreview, { type PreviewRecord } from "./ShotPreview";
 import BriefForm from "./BriefForm";
 import { useEffect, useState } from "react";
@@ -24,7 +26,7 @@ type Budget = {
 type Workspace =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; scene: Scene; budget: Budget; previews: PreviewRecord[] };
+  | { status: "ready"; scene: Scene; budget: Budget; veoPreviews: VeoPreviewRecord[]; previews: PreviewRecord[]; animations: AnimationRecord[] };
 
 const projectId = "demo_cafe";
 const initialAttemptId = "9480269091d94b628b5cf97af3075260";
@@ -66,15 +68,23 @@ export default function App() {
         `${basePath}/attempts/${attemptId}/scene`,
         controller.signal,
       ),
+      readJson<VeoPreviewRecord[]>(
+        `/v1/veo/projects/${projectId}/attempts/${attemptId}/previews`,
+        controller.signal,
+      ),
       readJson<Budget>(`${basePath}/budget`, controller.signal),
       readJson<PreviewRecord[]>(
         `${basePath}/attempts/${attemptId}/previews`,
         controller.signal,
       ),
+      readJson<AnimationRecord[]>(
+        `${basePath}/attempts/${attemptId}/animations`,
+        controller.signal,
+      ),
     ])
-      .then(([scene, budget, previews]) => {
+      .then(([scene, veoPreviews, budget, previews, animations]) => {
         if (!controller.signal.aborted) {
-          setWorkspace({ status: "ready", scene, budget, previews });
+          setWorkspace({ status: "ready", scene, veoPreviews, budget, previews, animations });
         }
       })
       .catch((error: unknown) => {
@@ -190,6 +200,20 @@ export default function App() {
                         </span>
                       </div>
                       <p>{shot.action}</p>
+                      <VeoPreview
+                        preview={workspace.veoPreviews.find(
+                          (item) =>
+                            item.source_attempt_id === attemptId &&
+                            item.shot_id === shot.shot_id,
+                        )}
+                      />
+                      <ShotAnimation
+                        animation={workspace.animations.find(
+                          (item) =>
+                            item.source_attempt_id === attemptId &&
+                            item.shot_id === shot.shot_id,
+                        )}
+                      />
                       <ShotPreview
                         preview={workspace.previews.find(
                           (item) =>
@@ -205,7 +229,7 @@ export default function App() {
                 ))}
               </ol>
             </section>
-            <footer>Saved director output · Video has not been rendered</footer>
+            <footer>Saved director output | Available video previews are shown per shot.</footer>
           </>
         )}
       </main>

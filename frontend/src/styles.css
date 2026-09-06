@@ -131,3 +131,22 @@ footer { color: #a5a7b1; font-size: .875rem; margin-top: 24px; }
   font-size: .875rem;
   line-height: 1.5;
 }
+
+.shot-animation {
+  margin: 20px 0;
+  max-width: 640px;
+}
+.shot-animation video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #101114;
+  border: 1px solid #494c58;
+  border-radius: 8px;
+}
+.shot-animation figcaption {
+  margin-top: 10px;
+  color: #b1b3bd;
+  font-size: .875rem;
+  line-height: 1.5;
+}
