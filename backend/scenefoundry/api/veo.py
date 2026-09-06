@@ -1,11 +1,11 @@
 """Serve locally saved Veo videos by attempt ID."""
 
-import os
-from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Path as ApiPath
 from fastapi.responses import FileResponse
+
+from scenefoundry.paths import local_data_root
 
 router = APIRouter(prefix="/v1/veo", tags=["video"])
 AttemptId = Annotated[str, ApiPath(pattern=r"^[0-9a-f]{32}$")]
@@ -13,13 +13,7 @@ AttemptId = Annotated[str, ApiPath(pattern=r"^[0-9a-f]{32}$")]
 
 @router.get("/{attempt_id}/video")
 def get_veo_video(attempt_id: AttemptId) -> FileResponse:
-    local_data = os.environ.get("LOCALAPPDATA")
-    if not local_data:
-        raise HTTPException(503, "Local video storage is unavailable.")
-
-    video = (
-        Path(local_data) / "SceneFoundry" / "veo" / attempt_id / "preview.mp4"
-    )
+    video = local_data_root() / "veo" / attempt_id / "preview.mp4"
     if not video.is_file():
         raise HTTPException(404, "Video not found.")
 

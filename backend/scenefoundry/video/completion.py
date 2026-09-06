@@ -3,10 +3,10 @@
 import hashlib
 import json
 import os
-from pathlib import Path
 
 from google.cloud import firestore, storage
 
+from scenefoundry.paths import local_data_root
 from scenefoundry.storage.cloud_media import upload_video
 from scenefoundry.storage.veo_previews import (
     CloudVideo,
@@ -61,10 +61,7 @@ def complete_veo(
         }
     operation_name = saved.get("operation_name")
 
-    local_data = os.environ.get("LOCALAPPDATA")
-    if not local_data:
-        raise RuntimeError("Local video storage is unavailable.")
-    directory = Path(local_data) / "SceneFoundry" / "veo" / attempt_id
+    directory = local_data_root() / "veo" / attempt_id
     receipt_path = directory / "provider_result.json"
 
     if not receipt_path.exists():

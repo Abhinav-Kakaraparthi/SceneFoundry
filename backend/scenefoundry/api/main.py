@@ -1,7 +1,11 @@
+import os
+from pathlib import Path
+
 from scenefoundry.api.cloud_videos import router as cloud_videos_router
 from scenefoundry.api.previews import router as previews_router
 from scenefoundry.api.generation import router as generation_router
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from scenefoundry.api.video_completion import router as video_completion_router
 
@@ -29,3 +33,14 @@ app.include_router(cloud_videos_router)
 app.include_router(shot_videos_router)
 
 app.include_router(video_completion_router)
+
+web_directory = os.environ.get("SCENEFOUNDRY_WEB_DIR")
+if web_directory:
+    resolved_web_directory = Path(web_directory)
+    if not resolved_web_directory.is_dir():
+        raise RuntimeError("Configured frontend directory does not exist.")
+    app.mount(
+        "/",
+        StaticFiles(directory=resolved_web_directory, html=True),
+        name="frontend",
+    )
