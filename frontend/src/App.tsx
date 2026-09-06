@@ -1,8 +1,10 @@
 import GenerateVideo from "./GenerateVideo";
-import VeoPreview, { type VeoPreviewRecord } from "./VeoPreview";
-import ShotAnimation, { type AnimationRecord } from "./ShotAnimation";
-import ShotPreview, { type PreviewRecord } from "./ShotPreview";
+import type { VeoPreviewRecord } from "./VeoPreview";
+import type { AnimationRecord } from "./ShotAnimation";
+import type { PreviewRecord } from "./ShotPreview";
+import ShotMedia from "./ShotMedia";
 import BriefForm from "./BriefForm";
+import StudioShell from "./StudioShell";
 import { useEffect, useState } from "react";
 
 type Shot = {
@@ -101,13 +103,8 @@ export default function App() {
   }, [revision, attemptId]);
 
   return (
-    <div className="workspace">
-      <header className="masthead">
-        <a className="brand" href="/">SceneFoundry<span> / STUDIO</span></a>
-        <span className="project-label">PROJECT / {projectId}</span>
-      </header>
-
-      <main>
+    <StudioShell projectId={projectId} attemptId={attemptId}>
+      <main id="overview">
         <div className="heading">
           <div>
             <p className="eyebrow">DIRECTOR WORKSPACE</p>
@@ -137,7 +134,7 @@ export default function App() {
 
         {workspace.status === "ready" && (
           <>
-            <section className="metrics" aria-label="Project budget">
+            <section id="budget-overview" className="metrics" aria-label="Project budget">
               {[
                 ["Allowance", workspace.budget.allowance_micro_usd],
                 ["Calculated spend", workspace.budget.accounted_micro_usd],
@@ -187,7 +184,7 @@ export default function App() {
 
               <ol className="shots">
                 {workspace.scene.shots.map((shot, index) => (
-                  <li key={shot.shot_id}>
+                  <li id={shot.shot_id} key={shot.shot_id}>
                     <span className="shot-number">
                       {String(index + 1).padStart(2, "0")}
                     </span>
@@ -216,22 +213,19 @@ export default function App() {
                         )}
                         onUpdated={() => setRevision((value) => value + 1)}
                       />
-                      <VeoPreview
+                      <ShotMedia
                         projectId={projectId}
-                        preview={workspace.veoPreviews.find(
+                        shotId={shot.shot_id}
+                        veo={workspace.veoPreviews.find(
                           (item) =>
                             item.source_attempt_id === attemptId &&
                             item.shot_id === shot.shot_id,
                         )}
-                      />
-                      <ShotAnimation
                         animation={workspace.animations.find(
                           (item) =>
                             item.source_attempt_id === attemptId &&
                             item.shot_id === shot.shot_id,
                         )}
-                      />
-                      <ShotPreview
                         preview={workspace.previews.find(
                           (item) =>
                             item.source_attempt_id === attemptId &&
@@ -250,6 +244,6 @@ export default function App() {
           </>
         )}
       </main>
-    </div>
+    </StudioShell>
   );
 }
