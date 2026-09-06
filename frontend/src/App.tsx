@@ -1,4 +1,4 @@
-import ShotPreview from "./ShotPreview";
+import ShotPreview, { type PreviewRecord } from "./ShotPreview";
 import BriefForm from "./BriefForm";
 import { useEffect, useState } from "react";
 
@@ -24,7 +24,7 @@ type Budget = {
 type Workspace =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; scene: Scene; budget: Budget };
+  | { status: "ready"; scene: Scene; budget: Budget; previews: PreviewRecord[] };
 
 const projectId = "demo_cafe";
 const initialAttemptId = "9480269091d94b628b5cf97af3075260";
@@ -67,10 +67,14 @@ export default function App() {
         controller.signal,
       ),
       readJson<Budget>(`${basePath}/budget`, controller.signal),
+      readJson<PreviewRecord[]>(
+        `${basePath}/attempts/${attemptId}/previews`,
+        controller.signal,
+      ),
     ])
-      .then(([scene, budget]) => {
+      .then(([scene, budget, previews]) => {
         if (!controller.signal.aborted) {
-          setWorkspace({ status: "ready", scene, budget });
+          setWorkspace({ status: "ready", scene, budget, previews });
         }
       })
       .catch((error: unknown) => {
@@ -186,7 +190,13 @@ export default function App() {
                         </span>
                       </div>
                       <p>{shot.action}</p>
-                      <ShotPreview sourceAttemptId={attemptId} shotId={shot.shot_id} />
+                      <ShotPreview
+                        preview={workspace.previews.find(
+                          (item) =>
+                            item.source_attempt_id === attemptId &&
+                            item.shot_id === shot.shot_id,
+                        )}
+                      />
                       <span className="frame-label">
                         FRAMES {shot.frames.start}–{shot.frames.end} · END EXCLUSIVE
                       </span>

@@ -1,3 +1,4 @@
+from scenefoundry.storage.previews import PreviewRecord
 import os
 from collections.abc import Iterator
 from typing import Annotated
@@ -69,3 +70,25 @@ def read_scene(
         raise HTTPException(status_code=409, detail="Scene response is unavailable.")
 
     return SceneSpec.model_validate_json(response.get("text"))
+
+@router.get("/{project_id}/attempts/{attempt_id}/previews")
+def list_previews(
+    project_id: ResourceId,
+    attempt_id: ResourceId,
+    db: Database,
+) -> list[PreviewRecord]:
+    attempt = db.document("projects", project_id, "attempts", attempt_id)
+    if not attempt.get(timeout=15).exists:
+        raise HTTPException(404, "Attempt not found.")
+
+    query = (
+        attempt.collection("previews")
+        .order_by("created_at", direction=firestore.Query.DESCENDING)
+        .limit(50)
+    )
+    previews = []
+    for snapshot in query.stream(timeout=15):
+        record = snapshot.to_dict()
+        record.pop("created_at", None)
+        previews.append(PreviewRecord.model_validate(record))
+    return previews
