@@ -1,6 +1,7 @@
 import { useState } from "react";
 import GenerateVideo from "./GenerateVideo";
 import ShotMedia from "./ShotMedia";
+import SceneReel from "./SceneReel";
 import type { AnimationRecord } from "./ShotAnimation";
 import type { PreviewRecord } from "./ShotPreview";
 import type { VeoPreviewRecord } from "./VeoPreview";
@@ -164,6 +165,14 @@ export default function ShotBoard({
           <span style={{ width: `${completion}%` }} />
         </span>
       </div>
+
+      <SceneReel
+        projectId={projectId}
+        shotIds={scene.shots.map((shot) => shot.shot_id)}
+        previews={veoPreviews.filter(
+          (item) => item.source_attempt_id === sourceAttemptId,
+        )}
+      />
 
       <div
         className="production-timeline"

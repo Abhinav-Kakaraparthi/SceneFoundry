@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { veoVideoUrl } from "./videoUrl";
 
 export type VeoPreviewRecord = {
   source_attempt_id: string;
@@ -27,11 +28,7 @@ export default function VeoPreview({
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   if (!preview) return null;
 
-  const attempt = encodeURIComponent(preview.video_attempt_id);
-  const project = encodeURIComponent(projectId);
-  const url = preview.cloud_video
-    ? `/v1/projects/${project}/videos/${attempt}/content`
-    : `/v1/veo/${attempt}/video`;
+const url = veoVideoUrl(projectId, preview);
   if (failedUrl === url) {
     return <p role="alert">The saved Veo video could not be loaded.</p>;
   }
