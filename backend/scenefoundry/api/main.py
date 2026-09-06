@@ -1,3 +1,4 @@
+from scenefoundry.api.cloud_videos import router as cloud_videos_router
 from scenefoundry.api.previews import router as previews_router
 from scenefoundry.api.generation import router as generation_router
 from fastapi import FastAPI
@@ -23,6 +24,7 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 app.include_router(veo_router)
+app.include_router(cloud_videos_router)
 
 app.include_router(shot_videos_router)
 

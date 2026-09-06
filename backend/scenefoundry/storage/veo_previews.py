@@ -9,6 +9,22 @@ from pydantic import BaseModel, ConfigDict, Field
 AttemptId = Annotated[str, Field(pattern=r"^[0-9a-f]{32}$")]
 
 
+class CloudVideo(BaseModel):
+    model_config = ConfigDict(strict=True, frozen=True, extra="forbid")
+
+    bucket_name: str = Field(
+        pattern=r"^[a-z0-9][a-z0-9._-]{1,61}[a-z0-9]$"
+    )
+    object_name: str = Field(
+        pattern=(
+            r"^projects/[A-Za-z0-9_-]{1,64}/videos/"
+            r"[0-9a-f]{32}/preview\.mp4$"
+        )
+    )
+    generation: int = Field(gt=0)
+    size_bytes: int = Field(gt=0)
+
+
 class VeoPreview(BaseModel):
     model_config = ConfigDict(strict=True, frozen=True, extra="forbid")
 
@@ -19,6 +35,7 @@ class VeoPreview(BaseModel):
     fps: Literal[24]
     frame_count: int = Field(gt=0)
     video_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
+    cloud_video: CloudVideo | None = None
     caption: str = Field(min_length=1, max_length=240)
 
 

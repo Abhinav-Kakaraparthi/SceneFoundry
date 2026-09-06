@@ -8,18 +8,30 @@ export type VeoPreviewRecord = {
   fps: number;
   frame_count: number;
   video_sha256: string;
+  cloud_video?: {
+    bucket_name: string;
+    object_name: string;
+    generation: number;
+    size_bytes: number;
+  } | null;
   caption: string;
 };
 
 export default function VeoPreview({
+  projectId,
   preview,
 }: {
+  projectId: string;
   preview: VeoPreviewRecord | undefined;
 }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   if (!preview) return null;
 
-  const url = `/v1/veo/${encodeURIComponent(preview.video_attempt_id)}/video`;
+  const attempt = encodeURIComponent(preview.video_attempt_id);
+  const project = encodeURIComponent(projectId);
+  const url = preview.cloud_video
+    ? `/v1/projects/${project}/videos/${attempt}/content`
+    : `/v1/veo/${attempt}/video`;
   if (failedUrl === url) {
     return <p role="alert">The saved Veo video could not be loaded.</p>;
   }

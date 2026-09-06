@@ -5,9 +5,14 @@ import json
 import os
 from pathlib import Path
 
-from google.cloud import firestore
+from google.cloud import firestore, storage
 
-from scenefoundry.storage.veo_previews import VeoPreview, save_veo_preview
+from scenefoundry.storage.cloud_media import upload_video
+from scenefoundry.storage.veo_previews import (
+    CloudVideo,
+    VeoPreview,
+    save_veo_preview,
+)
 from scenefoundry.storage.video_settlement import settle_video
 from scenefoundry.video.client import create_veo_client
 from scenefoundry.video.extraction import extract_veo_mp4
@@ -107,7 +112,21 @@ def complete_veo(
     )
     duration = data["video_config"]["duration_seconds"]
     verify_veo_mp4(video_path, ffprobe=ffprobe, duration_seconds=duration)
-    digest = hashlib.sha256(video_path.read_bytes()).hexdigest()
+    bucket_name = os.environ.get(
+        "SCENEFOUNDRY_MEDIA_BUCKET",
+        f"{db.project}-media",
+    )
+    media_client = storage.Client(project=db.project)
+    try:
+        stored = upload_video(
+            media_client,
+            bucket_name=bucket_name,
+            studio_project_id=studio_project_id,
+            attempt_id=attempt_id,
+            source=video_path,
+        )
+    finally:
+        media_client.close()
 
     save_veo_preview(
         db,
@@ -119,7 +138,13 @@ def complete_veo(
             model=data["model"],
             fps=24,
             frame_count=duration * 24,
-            video_sha256=digest,
+            video_sha256=stored.sha256,
+            cloud_video=CloudVideo(
+                bucket_name=stored.bucket_name,
+                object_name=stored.object_name,
+                generation=stored.generation,
+                size_bytes=stored.size_bytes,
+            ),
             caption="Veo cinematic preview | Audio included | Saved shot prompt",
         ),
     )
@@ -127,6 +152,10 @@ def complete_veo(
         "status": "succeeded",
         "completed_at": firestore.SERVER_TIMESTAMP,
         "media_verified": True,
-        "video_sha256": digest,
+        "video_sha256": stored.sha256,
+        "media_bucket": stored.bucket_name,
+        "media_object": stored.object_name,
+        "media_generation": stored.generation,
+        "media_size_bytes": stored.size_bytes,
     }, timeout=15)
     return result | {"status": "succeeded"}

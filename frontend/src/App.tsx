@@ -217,6 +217,7 @@ export default function App() {
                         onUpdated={() => setRevision((value) => value + 1)}
                       />
                       <VeoPreview
+                        projectId={projectId}
                         preview={workspace.veoPreviews.find(
                           (item) =>
                             item.source_attempt_id === attemptId &&
