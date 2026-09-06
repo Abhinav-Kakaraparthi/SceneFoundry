@@ -42,7 +42,17 @@ async function readJson<T>(path: string, signal: AbortSignal): Promise<T> {
 }
 
 export default function App() {
-  const [attemptId, setAttemptId] = useState(initialAttemptId);
+  const [attemptId, setAttemptId] = useState(() => {
+    const saved = new URL(window.location.href).searchParams.get("attempt");
+    return saved && /^[a-f0-9]{32}$/.test(saved) ? saved : initialAttemptId;
+  });
+
+  function selectAttempt(id: string) {
+    const url = new URL(window.location.href);
+    url.searchParams.set("attempt", id);
+    window.history.replaceState(null, "", url);
+    setAttemptId(id);
+  }
   const [workspace, setWorkspace] = useState<Workspace>({ status: "loading" });
   const [revision, setRevision] = useState(0);
 
@@ -95,7 +105,7 @@ export default function App() {
           </button>
         </div>
 
-        <BriefForm projectId={projectId} onCreated={setAttemptId} />
+        <BriefForm projectId={projectId} onCreated={selectAttempt} />
 
         {workspace.status === "loading" && (
           <p role="status" className="notice">Loading saved production data…</p>
