@@ -1,3 +1,4 @@
+import ShotPreview from "./ShotPreview";
 import BriefForm from "./BriefForm";
 import { useEffect, useState } from "react";
 
@@ -185,6 +186,7 @@ export default function App() {
                         </span>
                       </div>
                       <p>{shot.action}</p>
+                      <ShotPreview sourceAttemptId={attemptId} shotId={shot.shot_id} />
                       <span className="frame-label">
                         FRAMES {shot.frames.start}–{shot.frames.end} · END EXCLUSIVE
                       </span>

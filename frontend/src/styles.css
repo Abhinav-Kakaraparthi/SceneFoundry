@@ -112,3 +112,22 @@ footer { color: #a5a7b1; font-size: .875rem; margin-top: 24px; }
   font: .875rem ui-monospace, monospace;
 }
 .heading + .scene-panel { margin-bottom: 28px; }
+
+.shot-preview {
+  margin: 20px 0;
+  max-width: 640px;
+}
+.shot-preview a { display: block; }
+.shot-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #494c58;
+  border-radius: 8px;
+}
+.shot-preview figcaption {
+  margin-top: 10px;
+  color: #b1b3bd;
+  font-size: .875rem;
+  line-height: 1.5;
+}
