@@ -1,3 +1,4 @@
+import { useState } from "react";
 import GenerateVideo from "./GenerateVideo";
 import ShotMedia from "./ShotMedia";
 import type { AnimationRecord } from "./ShotAnimation";
@@ -56,26 +57,67 @@ export default function ShotBoard({
   previews,
   onUpdated,
 }: Props) {
-  const cinematicCount = veoPreviews.filter(
-    (item) => item.source_attempt_id === sourceAttemptId,
-  ).length;
+  const [selectedShotId, setSelectedShotId] = useState(() => {
+    const hash = window.location.hash.slice(1);
+    return scene.shots.some((shot) => shot.shot_id === hash)
+      ? hash
+      : (scene.shots[0]?.shot_id ?? "");
+  });
 
-  const totalOutputs =
-    veoPreviews.filter(
-      (item) => item.source_attempt_id === sourceAttemptId,
-    ).length +
-    animations.filter(
-      (item) => item.source_attempt_id === sourceAttemptId,
-    ).length +
-    previews.filter(
-      (item) => item.source_attempt_id === sourceAttemptId,
-    ).length;
+  const records = scene.shots.map((shot, index) => {
+    const veo = veoPreviews.find(
+      (item) =>
+        item.source_attempt_id === sourceAttemptId &&
+        item.shot_id === shot.shot_id,
+    );
+    const animation = animations.find(
+      (item) =>
+        item.source_attempt_id === sourceAttemptId &&
+        item.shot_id === shot.shot_id,
+    );
+    const preview = previews.find(
+      (item) =>
+        item.source_attempt_id === sourceAttemptId &&
+        item.shot_id === shot.shot_id,
+    );
 
+    return {
+      shot,
+      index,
+      veo,
+      animation,
+      preview,
+      state: getState(veo, animation, preview),
+      outputCount:
+        Number(Boolean(veo)) +
+        Number(Boolean(animation)) +
+        Number(Boolean(preview)),
+    };
+  });
+
+  const requestedIndex = records.findIndex(
+    (record) => record.shot.shot_id === selectedShotId,
+  );
+  const selectedIndex = requestedIndex >= 0 ? requestedIndex : 0;
+  const current = records[selectedIndex];
+
+  const cinematicCount = records.filter((record) => record.veo).length;
+  const totalOutputs = records.reduce(
+    (total, record) => total + record.outputCount,
+    0,
+  );
   const totalFrames = scene.shots.at(-1)?.frames.end ?? 0;
   const completion =
-    scene.shots.length === 0
+    records.length === 0
       ? 0
-      : Math.round((cinematicCount / scene.shots.length) * 100);
+      : Math.round((cinematicCount / records.length) * 100);
+
+  function selectShot(shotId: string) {
+    const url = new URL(window.location.href);
+    url.hash = shotId;
+    window.history.replaceState(null, "", url);
+    setSelectedShotId(shotId);
+  }
 
   return (
     <section
@@ -87,19 +129,19 @@ export default function ShotBoard({
           <p className="eyebrow">SAVED SCENE / {scene.scene_id}</p>
           <h2 id="scene-title">Production board</h2>
           <p className="production-subtitle">
-            Review every shot from direction through final cinematic output.
+            Select a shot to review its direction, status, and outputs.
           </p>
         </div>
 
         <div className="production-summary" aria-label="Scene summary">
           <span>
             <small>Shots</small>
-            <strong>{scene.shots.length}</strong>
+            <strong>{records.length}</strong>
           </span>
           <span>
             <small>Final</small>
             <strong>
-              {cinematicCount}/{scene.shots.length}
+              {cinematicCount}/{records.length}
             </strong>
           </span>
           <span>
@@ -123,143 +165,163 @@ export default function ShotBoard({
         </span>
       </div>
 
-      <nav className="production-timeline" aria-label="Scene shots">
-        {scene.shots.map((shot, index) => {
-          const veo = veoPreviews.find(
-            (item) =>
-              item.source_attempt_id === sourceAttemptId &&
-              item.shot_id === shot.shot_id,
-          );
-          const animation = animations.find(
-            (item) =>
-              item.source_attempt_id === sourceAttemptId &&
-              item.shot_id === shot.shot_id,
-          );
-          const preview = previews.find(
-            (item) =>
-              item.source_attempt_id === sourceAttemptId &&
-              item.shot_id === shot.shot_id,
-          );
-          const state = getState(veo, animation, preview);
+      <div
+        className="production-timeline"
+        role="tablist"
+        aria-label="Scene shots"
+      >
+        {records.map((record) => {
+          const selected = record.index === selectedIndex;
 
           return (
-            <a
-              key={shot.shot_id}
-              className={`timeline-shot ${state.key}`}
-              href={`#${shot.shot_id}`}
-              style={{ flex: shot.frames.end - shot.frames.start }}
-              title={`${shot.shot_id}: ${state.label}`}
+            <button
+              key={record.shot.shot_id}
+              id={`timeline-${record.shot.shot_id}`}
+              className={`timeline-shot ${record.state.key}`}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              aria-controls="shot-focus-panel"
+              title={`${record.shot.shot_id}: ${record.state.label}`}
+              style={{
+                flex:
+                  record.shot.frames.end - record.shot.frames.start,
+              }}
+              onClick={() => selectShot(record.shot.shot_id)}
             >
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <small>{state.label}</small>
-            </a>
+              <span>
+                {String(record.index + 1).padStart(2, "0")}
+                <i aria-hidden="true" />
+              </span>
+              <strong>{record.shot.shot_id}</strong>
+              <small>{record.state.label}</small>
+            </button>
           );
         })}
-      </nav>
+      </div>
 
-      <ol className="shots production-shots">
-        {scene.shots.map((shot, index) => {
-          const veo = veoPreviews.find(
-            (item) =>
-              item.source_attempt_id === sourceAttemptId &&
-              item.shot_id === shot.shot_id,
-          );
-          const animation = animations.find(
-            (item) =>
-              item.source_attempt_id === sourceAttemptId &&
-              item.shot_id === shot.shot_id,
-          );
-          const preview = previews.find(
-            (item) =>
-              item.source_attempt_id === sourceAttemptId &&
-              item.shot_id === shot.shot_id,
-          );
-          const state = getState(veo, animation, preview);
-          const frameCount = shot.frames.end - shot.frames.start;
-          const outputCount =
-            Number(Boolean(veo)) +
-            Number(Boolean(animation)) +
-            Number(Boolean(preview));
-
-          return (
-            <li
-              id={shot.shot_id}
-              className="production-shot"
-              data-state={state.key}
-              key={shot.shot_id}
-            >
-              <header className="production-shot-header">
-                <div className="shot-identity">
-                  <span className="shot-number">
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <div>
-                    <h3>{shot.shot_id}</h3>
-                    <span className={`shot-status ${state.key}`}>
-                      <span />
-                      {state.label}
-                    </span>
-                  </div>
-                </div>
-
-                <span className="shot-time">
-                  {seconds(shot.frames.start, scene.fps)}
-                  {" – "}
-                  {seconds(shot.frames.end, scene.fps)}
-                </span>
-              </header>
-
-              <div className="shot-content">
-                <p className="shot-action">{shot.action}</p>
-
-                <div className="shot-specs" aria-label="Shot specifications">
-                  <span>
-                    <small>Duration</small>
-                    <strong>{seconds(frameCount, scene.fps)}</strong>
-                  </span>
-                  <span>
-                    <small>Frames</small>
-                    <strong>{frameCount}</strong>
-                  </span>
-                  <span>
-                    <small>Frame rate</small>
-                    <strong>{scene.fps} fps</strong>
-                  </span>
-                  <span>
-                    <small>Outputs</small>
-                    <strong>{outputCount}</strong>
-                  </span>
-                </div>
-
-                <GenerateVideo
-                  key={`${sourceAttemptId}:${shot.shot_id}`}
-                  projectId={projectId}
-                  sourceAttemptId={sourceAttemptId}
-                  shotId={shot.shot_id}
-                  frameCount={frameCount}
-                  fps={scene.fps}
-                  availableMicroUsd={availableMicroUsd}
-                  hasVideo={Boolean(veo)}
-                  onUpdated={onUpdated}
-                />
-
-                <ShotMedia
-                  projectId={projectId}
-                  shotId={shot.shot_id}
-                  veo={veo}
-                  animation={animation}
-                  preview={preview}
-                />
-
-                <span className="frame-label">
-                  SOURCE FRAMES {shot.frames.start}–{shot.frames.end}
-                  {" · "}END EXCLUSIVE
+      {current ? (
+        <article
+          id="shot-focus-panel"
+          className="focus-shot"
+          data-state={current.state.key}
+          role="tabpanel"
+          aria-labelledby={`timeline-${current.shot.shot_id}`}
+        >
+          <header className="focus-shot-header">
+            <div className="shot-identity">
+              <span className="shot-number">
+                {String(current.index + 1).padStart(2, "0")}
+              </span>
+              <div>
+                <h3>{current.shot.shot_id}</h3>
+                <span className={`shot-status ${current.state.key}`}>
+                  <span />
+                  {current.state.label}
                 </span>
               </div>
-            </li>
-          );
-        })}
-      </ol>
+            </div>
+
+            <span className="shot-time">
+              {seconds(current.shot.frames.start, scene.fps)}
+              {" – "}
+              {seconds(current.shot.frames.end, scene.fps)}
+            </span>
+          </header>
+
+          <div className="focus-shot-content">
+            <div className="shot-direction">
+              <span className="media-kicker">SHOT DIRECTION</span>
+              <p>{current.shot.action}</p>
+            </div>
+
+            <div className="shot-specs" aria-label="Shot specifications">
+              <span>
+                <small>Duration</small>
+                <strong>
+                  {seconds(
+                    current.shot.frames.end -
+                      current.shot.frames.start,
+                    scene.fps,
+                  )}
+                </strong>
+              </span>
+              <span>
+                <small>Frames</small>
+                <strong>
+                  {current.shot.frames.end - current.shot.frames.start}
+                </strong>
+              </span>
+              <span>
+                <small>Frame rate</small>
+                <strong>{scene.fps} fps</strong>
+              </span>
+              <span>
+                <small>Outputs</small>
+                <strong>{current.outputCount}</strong>
+              </span>
+            </div>
+
+            <GenerateVideo
+              key={`${sourceAttemptId}:${current.shot.shot_id}`}
+              projectId={projectId}
+              sourceAttemptId={sourceAttemptId}
+              shotId={current.shot.shot_id}
+              frameCount={
+                current.shot.frames.end - current.shot.frames.start
+              }
+              fps={scene.fps}
+              availableMicroUsd={availableMicroUsd}
+              hasVideo={Boolean(current.veo)}
+              onUpdated={onUpdated}
+            />
+
+            <ShotMedia
+              projectId={projectId}
+              shotId={current.shot.shot_id}
+              veo={current.veo}
+              animation={current.animation}
+              preview={current.preview}
+            />
+
+            <span className="frame-label">
+              SOURCE FRAMES {current.shot.frames.start}–
+              {current.shot.frames.end}
+              {" · "}END EXCLUSIVE
+            </span>
+          </div>
+
+          <footer className="focus-navigation">
+            <button
+              type="button"
+              disabled={selectedIndex === 0}
+              onClick={() =>
+                selectShot(records[selectedIndex - 1]!.shot.shot_id)
+              }
+            >
+              <span aria-hidden="true">←</span>
+              Previous shot
+            </button>
+
+            <span className="focus-position">
+              Shot {selectedIndex + 1} of {records.length}
+            </span>
+
+            <button
+              type="button"
+              disabled={selectedIndex === records.length - 1}
+              onClick={() =>
+                selectShot(records[selectedIndex + 1]!.shot.shot_id)
+              }
+            >
+              Next shot
+              <span aria-hidden="true">→</span>
+            </button>
+          </footer>
+        </article>
+      ) : (
+        <p className="board-empty">This scene does not contain any shots.</p>
+      )}
     </section>
   );
 }
