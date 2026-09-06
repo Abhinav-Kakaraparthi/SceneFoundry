@@ -1,0 +1,298 @@
+/* Guided scene composer */
+.composer-panel {
+  scroll-margin-top: 88px;
+}
+
+.composer-panel .brief-form {
+  gap: 0;
+  padding: 0;
+}
+
+.composer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 27px 29px;
+  border-bottom: 1px solid var(--border);
+  background:
+    radial-gradient(
+      circle at 92% 0%,
+      rgba(168, 139, 255, 0.13),
+      transparent 19rem
+    ),
+    rgba(255, 255, 255, 0.018);
+}
+
+.composer-header h2 {
+  margin: 8px 0 5px;
+}
+
+.composer-header > div > p:last-child {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.79rem;
+  line-height: 1.55;
+}
+
+.model-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 11px;
+  border: 1px solid rgba(168, 139, 255, 0.25);
+  border-radius: 999px;
+  color: #d5caff;
+  background: rgba(168, 139, 255, 0.08);
+  font-size: 0.69rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.model-badge span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--violet-bright);
+  box-shadow: 0 0 0 4px rgba(168, 139, 255, 0.1);
+}
+
+.composer-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 275px;
+}
+
+.composer-main {
+  padding: 27px 29px 25px;
+}
+
+.field-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 11px;
+}
+
+.field-heading label {
+  color: #dddbe5;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.field-heading span {
+  color: var(--subtle);
+  font: 0.66rem ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.prompt-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 11px;
+}
+
+.suggestion-chip {
+  min-height: 32px;
+  padding: 6px 10px;
+  border-color: var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: none;
+  font-size: 0.67rem;
+  font-weight: 600;
+}
+
+.suggestion-chip:hover:not(:disabled) {
+  border-color: rgba(168, 139, 255, 0.38);
+  color: var(--text);
+  background: rgba(168, 139, 255, 0.07);
+  transform: none;
+}
+
+.composer-input {
+  position: relative;
+}
+
+.composer-input textarea {
+  min-height: 220px;
+  margin: 0;
+  padding: 19px 19px 42px;
+}
+
+.input-corner {
+  position: absolute;
+  right: 13px;
+  bottom: 13px;
+  padding: 5px 7px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--subtle);
+  background: rgba(0, 0, 0, 0.24);
+  font: 0.56rem ui-monospace, "SFMono-Regular", Consolas, monospace;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+}
+
+.composer-hint {
+  margin: 10px 0 0;
+  color: var(--subtle);
+  font-size: 0.68rem;
+  line-height: 1.55;
+}
+
+.composer-guide {
+  padding: 27px 23px;
+  border-left: 1px solid var(--border);
+  background:
+    linear-gradient(
+      155deg,
+      rgba(168, 139, 255, 0.055),
+      rgba(255, 155, 120, 0.018)
+    ),
+    rgba(255, 255, 255, 0.012);
+}
+
+.guide-step {
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr);
+  gap: 11px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.guide-step > span {
+  color: var(--coral);
+  font: 0.62rem ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+
+.guide-step strong,
+.guide-step small {
+  display: block;
+}
+
+.guide-step strong {
+  margin-bottom: 4px;
+  font-size: 0.76rem;
+}
+
+.guide-step small {
+  color: var(--muted);
+  font-size: 0.66rem;
+  line-height: 1.5;
+}
+
+.composer-specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 17px;
+}
+
+.composer-specs > span {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.composer-specs small,
+.composer-specs strong {
+  display: block;
+}
+
+.composer-specs small {
+  margin-bottom: 5px;
+  color: var(--subtle);
+  font-size: 0.59rem;
+}
+
+.composer-specs strong {
+  color: #ddd9eb;
+  font-size: 0.7rem;
+}
+
+.composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin: 0;
+  padding: 17px 29px;
+  border-top: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.composer-footer > div {
+  display: grid;
+  gap: 5px;
+}
+
+.composer-footer .billing-note,
+.composer-footer [role="status"],
+.composer-footer .attempt-reference {
+  margin: 0;
+}
+
+.composer-footer [role="status"] {
+  color: #d3d0dc;
+  font-size: 0.73rem;
+}
+
+.composer-footer [role="status"]:empty {
+  display: none;
+}
+
+.composer-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  min-width: 175px;
+}
+
+.composer-button span {
+  color: var(--violet-bright);
+  font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+  .composer-body {
+    grid-template-columns: 1fr;
+  }
+
+  .composer-guide {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
+
+  .guide-step {
+    grid-template-columns: 30px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .composer-header,
+  .composer-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .composer-header,
+  .composer-main,
+  .composer-guide,
+  .composer-footer {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .composer-button {
+    width: 100%;
+  }
+
+  .composer-specs {
+    grid-template-columns: 1fr;
+  }
+}

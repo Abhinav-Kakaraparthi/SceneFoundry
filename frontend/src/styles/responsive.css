@@ -1,0 +1,149 @@
+@media (max-width: 1040px) {
+  .studio-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-sidebar {
+    position: static;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    height: auto;
+    padding: 17px 22px;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-project,
+  .sidebar-footer,
+  .studio-navigation > .sidebar-label {
+    display: none;
+  }
+
+  .studio-navigation {
+    display: flex;
+    justify-content: flex-end;
+    overflow-x: auto;
+  }
+
+  .nav-link {
+    display: flex;
+    gap: 7px;
+    min-height: 38px;
+    padding: 0 10px;
+    white-space: nowrap;
+  }
+
+  .shell-topbar {
+    top: 0;
+  }
+
+  main {
+    padding-top: 42px;
+  }
+}
+
+@media (max-width: 760px) {
+  .studio-sidebar {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .studio-navigation {
+    justify-content: flex-start;
+  }
+
+  .shell-topbar {
+    min-height: 58px;
+    padding: 0 17px;
+  }
+
+  .breadcrumb {
+    display: none;
+  }
+
+  .topbar-context {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  main {
+    padding: 25px 14px 55px;
+  }
+
+  .heading {
+    min-height: 165px;
+    padding: 25px 22px;
+  }
+
+  .heading,
+  .scene-heading,
+  .shot-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 12vw, 3.2rem);
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metric {
+    padding: 19px;
+  }
+
+  .brief-form,
+  .scene-heading {
+    padding: 22px 18px;
+  }
+
+  .timeline {
+    padding: 15px 18px;
+  }
+
+  .shots li {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 11px;
+    padding: 27px 17px;
+  }
+
+  .video-generation {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .video-generation button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .shell-brand small,
+  .attempt-pill,
+  .nav-index {
+    display: none;
+  }
+
+  .nav-link {
+    font-size: 0.76rem;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

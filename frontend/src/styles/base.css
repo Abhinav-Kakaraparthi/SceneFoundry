@@ -1,0 +1,97 @@
+:root {
+  font-family:
+    Inter, "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: #f8f7ff;
+  background: #09090d;
+  font-synthesis: none;
+  color-scheme: dark;
+  --canvas: #09090d;
+  --sidebar: rgba(13, 13, 20, 0.94);
+  --surface: rgba(22, 22, 31, 0.76);
+  --surface-solid: #171720;
+  --surface-raised: #1d1d29;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text: #f8f7ff;
+  --muted: #9b9aab;
+  --subtle: #6f6e7d;
+  --violet: #a88bff;
+  --violet-bright: #c1afff;
+  --coral: #ff9b78;
+  --green: #72e6ad;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--canvas);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 76% 3%, rgba(111, 76, 212, 0.15), transparent 31rem),
+    radial-gradient(circle at 38% 40%, rgba(255, 126, 92, 0.05), transparent 34rem),
+    var(--canvas);
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+  content: "";
+  pointer-events: none;
+}
+
+button,
+a,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--violet-bright);
+  outline-offset: 4px;
+}
+
+button {
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid rgba(168, 139, 255, 0.42);
+  border-radius: 11px;
+  color: white;
+  background:
+    linear-gradient(135deg, rgba(168, 139, 255, 0.24), rgba(255, 155, 120, 0.1)),
+    var(--surface-raised);
+  box-shadow: 0 10px 30px rgba(4, 4, 8, 0.22);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--violet-bright);
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
