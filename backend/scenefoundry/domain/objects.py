@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from scenefoundry.domain.spatial import Vector3
 
@@ -23,6 +23,18 @@ class MaterialSpec(BaseModel):
     model_config = ConfigDict(
         strict=True, frozen=True, extra="forbid", allow_inf_nan=False
     )
+
+    @field_validator("color_hex", mode="before")
+    @classmethod
+    def normalize_color_hex(cls, value: object) -> object:
+        """Canonicalize bare RGB hex strings without guessing colors."""
+        if (
+            isinstance(value, str)
+            and len(value) == 6
+            and all(character in "0123456789abcdefABCDEF" for character in value)
+        ):
+            return "#" + value
+        return value
 
     color_hex: str = Field(pattern=r"^#[0-9A-Fa-f]{6}$")
     roughness: float = Field(default=0.5, ge=0, le=1)
