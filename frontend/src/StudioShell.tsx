@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useAuth } from "./AuthGate";
 
 type Props = {
   projectId: string;
@@ -28,6 +29,14 @@ export default function StudioShell({
   attemptId,
   children,
 }: Props) {
+  const { user, signOut } = useAuth();
+  const initials = user.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
   return (
     <div className="studio-shell">
       <aside className="studio-sidebar">
@@ -88,6 +97,24 @@ export default function StudioShell({
             <span className="attempt-pill">
               Attempt {attemptId.slice(0, 8)}
             </span>
+            <button
+              className="user-chip"
+              type="button"
+              onClick={signOut}
+              title={`Signed in as ${user.email}. Click to sign out.`}
+            >
+              {user.picture_url ? (
+                <img src={user.picture_url} alt="" referrerPolicy="no-referrer" />
+              ) : (
+                <span className="user-chip-avatar" aria-hidden="true">
+                  {initials}
+                </span>
+              )}
+              <span className="user-chip-copy">
+                <strong>{user.name}</strong>
+                <small>Sign out</small>
+              </span>
+            </button>
           </div>
         </header>
 

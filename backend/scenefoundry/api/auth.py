@@ -1,5 +1,6 @@
 """Google authentication and verified-user API boundary."""
 
+import os
 from typing import Annotated
 
 from fastapi import (
@@ -24,6 +25,41 @@ from scenefoundry.storage.users import (
 
 
 router = APIRouter(prefix="/v1/auth", tags=["authentication"])
+
+
+class GoogleAuthConfiguration(BaseModel):
+    """Public browser configuration for Google Identity Services."""
+
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    enabled: bool
+    client_id: str | None
+
+
+@router.get(
+    "/config",
+    response_model=GoogleAuthConfiguration,
+)
+def read_google_auth_configuration() -> GoogleAuthConfiguration:
+    """Return only the public OAuth client identifier."""
+
+    client_id = os.environ.get(
+        "GOOGLE_OAUTH_CLIENT_ID",
+        "",
+    ).strip()
+
+    if (
+        client_id
+        and not client_id.endswith(
+            ".apps.googleusercontent.com"
+        )
+    ):
+        client_id = ""
+
+    return GoogleAuthConfiguration(
+        enabled=bool(client_id),
+        client_id=client_id or None,
+    )
 
 
 class GoogleLoginRequest(BaseModel):
