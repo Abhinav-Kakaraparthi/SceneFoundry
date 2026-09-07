@@ -4,6 +4,7 @@ import type { PreviewRecord } from "./ShotPreview";
 import BriefForm from "./BriefForm";
 import ShotBoard, { type Scene } from "./ShotBoard";
 import StudioShell from "./StudioShell";
+import ScreenplayWorkspace from "./ScreenplayWorkspace";
 import { useEffect, useState } from "react";
 
 
@@ -141,6 +142,8 @@ export default function App() {
             {workspace.status === "loading" ? "Loading…" : "Refresh"}
           </button>
         </div>
+
+        <ScreenplayWorkspace projectId={projectId} />
 
         <BriefForm projectId={projectId} onCreated={selectAttempt} />
 
