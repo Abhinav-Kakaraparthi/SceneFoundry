@@ -7,6 +7,7 @@ import StudioShell from "./StudioShell";
 import ScreenplayWorkspace from "./ScreenplayWorkspace";
 import ProductionResearch from "./ProductionResearch";
 import RevisionReview from "./RevisionReview";
+import RevisionEditor from "./RevisionEditor";
 import { useEffect, useState } from "react";
 
 
@@ -24,6 +25,9 @@ type RevisionStatusRecord = {
     scene: Scene;
   };
   state: "pending" | "approved" | "changes_requested";
+  approval: {
+    note: string | null;
+  } | null;
 };
 
 type Workspace =
@@ -33,6 +37,7 @@ type Workspace =
       status: "ready";
       revisionId: string;
       revisionState: RevisionStatusRecord["state"];
+      reviewNote: string | null;
       scene: Scene;
       budget: Budget;
       veoPreviews: VeoPreviewRecord[];
@@ -110,6 +115,7 @@ export default function App() {
             status: "ready",
             revisionId: selected.revision.revision_id,
             revisionState: selected.state,
+            reviewNote: selected.approval?.note ?? null,
             scene: selected.revision.scene,
             veoPreviews,
             budget,
@@ -198,6 +204,19 @@ export default function App() {
               state={workspace.revisionState}
               onUpdated={() => setRevision((value) => value + 1)}
             />
+
+            {workspace.revisionState === "changes_requested" && (
+              <RevisionEditor
+                projectId={projectId}
+                attemptId={attemptId}
+                parentRevisionId={workspace.revisionId}
+                reviewNote={workspace.reviewNote}
+                scene={workspace.scene}
+                onCreated={() =>
+                  setRevision((value) => value + 1)
+                }
+              />
+            )}
 
             <ShotBoard
               projectId={projectId}

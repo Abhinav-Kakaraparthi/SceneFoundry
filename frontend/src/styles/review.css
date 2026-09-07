@@ -146,3 +146,148 @@
     flex-direction: column;
   }
 }
+.revision-editor {
+  margin: 18px 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 155, 120, 0.28);
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.revision-editor > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.revision-editor h2 {
+  margin: 7px 0;
+  font-size: 1.2rem;
+}
+
+.revision-editor header p,
+.revision-editor-actions > span {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.55;
+}
+
+.revision-editor header code {
+  color: #c9bbff;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.revision-request-note {
+  margin: 20px 28px 0;
+  padding: 14px 16px;
+  border-left: 3px solid var(--coral);
+  border-radius: 8px;
+  background: rgba(255, 155, 120, 0.05);
+}
+
+.revision-request-note strong,
+.revision-shot-list label > span,
+.revision-change-note > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #ddd9e5;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.revision-request-note p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.revision-editor form {
+  padding: 22px 28px 26px;
+}
+
+.revision-editor fieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.revision-editor legend {
+  margin-bottom: 13px;
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.revision-shot-list {
+  display: grid;
+  gap: 12px;
+}
+
+.revision-shot-list textarea,
+.revision-change-note input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  background: rgba(4, 4, 8, 0.66);
+  font: inherit;
+}
+
+.revision-shot-list textarea {
+  padding: 13px 14px;
+  resize: vertical;
+}
+
+.revision-change-note {
+  display: block;
+  margin-top: 16px;
+}
+
+.revision-change-note input {
+  min-height: 45px;
+  padding: 10px 13px;
+}
+
+.revision-editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.revision-editor-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  min-height: 43px;
+  padding: 10px 17px;
+}
+
+.revision-editor form > p[role="status"] {
+  margin: 14px 0 0;
+  color: #bdf3d7;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 700px) {
+  .revision-editor > header,
+  .revision-editor-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .revision-editor-actions button {
+    justify-content: space-between;
+  }
+}
