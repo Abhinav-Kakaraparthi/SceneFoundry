@@ -7,6 +7,9 @@ from google.cloud import firestore
 
 from scenefoundry.billing.rates import TokenRateCard
 from scenefoundry.billing.usage import price_director_usage
+from scenefoundry.domain.director_grounding import (
+    DirectorGrounding,
+)
 from scenefoundry.storage.attempts import claim_attempt, create_attempt
 from scenefoundry.storage.responses import save_response
 from scenefoundry.storage.settlement import settle_attempt
@@ -22,6 +25,7 @@ async def run_accounted(
     attempt_id: str,
     reservation_micro_usd: int,
     rate: TokenRateCard,
+    grounding: DirectorGrounding | None = None,
     execute: Callable[[], Awaitable[Receipt]],
     validate: Callable[[str], Result],
 ) -> Result:
@@ -38,7 +42,11 @@ async def run_accounted(
         "attempt_id": attempt_id,
     }
     await asyncio.to_thread(
-        create_attempt, db, **identifiers, model=rate.model
+        create_attempt,
+        db,
+        **identifiers,
+        model=rate.model,
+        grounding=grounding,
     )
     attempt = db.document(
         "projects", studio_project_id, "attempts", attempt_id

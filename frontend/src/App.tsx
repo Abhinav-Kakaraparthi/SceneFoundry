@@ -66,6 +66,7 @@ export default function App() {
   }
   const [workspace, setWorkspace] = useState<Workspace>({ status: "loading" });
   const [revision, setRevision] = useState(0);
+  const [researchId, setResearchId] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -146,9 +147,17 @@ export default function App() {
 
         <ScreenplayWorkspace projectId={projectId} />
 
-        <ProductionResearch projectId={projectId} />
+        <ProductionResearch
+          projectId={projectId}
+          selectedResearchId={researchId}
+          onSelected={setResearchId}
+        />
 
-        <BriefForm projectId={projectId} onCreated={selectAttempt} />
+        <BriefForm
+          projectId={projectId}
+          researchId={researchId}
+          onCreated={selectAttempt}
+        />
 
         {workspace.status === "loading" && (
           <p role="status" className="notice">Loading saved production data…</p>

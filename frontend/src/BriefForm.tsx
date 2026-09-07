@@ -1,8 +1,10 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { authenticatedFetch } from "./authSession";
 
 type Props = {
   projectId: string;
+  researchId: string | null;
   onCreated: (attemptId: string) => void;
 };
 
@@ -24,7 +26,11 @@ const examples = [
   },
 ];
 
-export default function BriefForm({ projectId, onCreated }: Props) {
+export default function BriefForm({
+  projectId,
+  researchId,
+  onCreated,
+}: Props) {
   const storageKey = `scenefoundry:pending:${projectId}`;
   const [brief, setBrief] = useState("");
   const [attemptId, setAttemptId] = useState<string | null>(() => {
@@ -51,17 +57,25 @@ export default function BriefForm({ projectId, onCreated }: Props) {
     if (busy || attemptId || !text || text.length > 4000) return;
 
     setBusy(true);
-    setMessage("Gemini is directing your shot sequence…");
+    setMessage(
+      researchId
+        ? "Parallel evidence is grounding Gemini's shot decisions..."
+        : "Gemini is directing your shot sequence...",
+    );
 
     try {
       const id = crypto.randomUUID().replaceAll("-", "");
       sessionStorage.setItem(storageKey, id);
       setAttemptId(id);
 
-      const response = await fetch(`${basePath}/attempts`, {
+      const response = await authenticatedFetch(`${basePath}/attempts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ attempt_id: id, brief: text }),
+        body: JSON.stringify({
+          attempt_id: id,
+          brief: text,
+          research_id: researchId,
+        }),
       });
 
       if (!response.ok) {
@@ -86,7 +100,7 @@ export default function BriefForm({ projectId, onCreated }: Props) {
     setMessage("Checking the preserved generation attempt…");
 
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${basePath}/attempts/${attemptId}/scene`,
       );
 
@@ -130,7 +144,7 @@ export default function BriefForm({ projectId, onCreated }: Props) {
 
           <span className="model-badge">
             <span />
-            Gemini Director
+            {researchId ? "Gemini + Parallel" : "Gemini Director"}
           </span>
         </header>
 
@@ -222,6 +236,11 @@ export default function BriefForm({ projectId, onCreated }: Props) {
           <div>
             <p id="brief-budget" className="billing-note">
               The reservation is released or settled after generation.
+            </p>
+            <p className="billing-note">
+              {researchId
+                ? `Grounded by immutable Parallel evidence ${researchId.slice(-8)}.`
+                : "No Parallel evidence selected for this scene."}
             </p>
             {attemptId && (
               <p className="attempt-reference">Attempt: {attemptId}</p>

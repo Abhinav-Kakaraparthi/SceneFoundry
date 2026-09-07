@@ -36,6 +36,8 @@ type ResearchResponse = {
 
 type Props = {
   projectId: string;
+  selectedResearchId: string | null;
+  onSelected: (researchId: string | null) => void;
 };
 
 const initialObjective =
@@ -74,7 +76,11 @@ function cleanEvidenceText(value: string): string {
     .trim();
 }
 
-export default function ProductionResearch({ projectId }: Props) {
+export default function ProductionResearch({
+  projectId,
+  selectedResearchId,
+  onSelected,
+}: Props) {
   const basePath = `/v1/projects/${projectId}/research`;
   const [objective, setObjective] = useState(initialObjective);
   const [queries, setQueries] = useState(initialQueries);
@@ -100,6 +106,7 @@ export default function ProductionResearch({ projectId }: Props) {
       .then((items) => {
         if (!controller.signal.aborted) {
           setRecords(items);
+          onSelected(items[0]?.research_id ?? null);
         }
       })
       .catch((caught: unknown) => {
@@ -121,7 +128,7 @@ export default function ProductionResearch({ projectId }: Props) {
       });
 
     return () => controller.abort();
-  }, [basePath]);
+  }, [basePath, onSelected]);
 
   const valid = useMemo(
     () =>
@@ -177,10 +184,11 @@ export default function ProductionResearch({ projectId }: Props) {
             item.research_id !== payload.record.research_id,
         ),
       ]);
+      onSelected(payload.record.research_id);
       setMessage(
         payload.created
-          ? "Fresh web evidence captured and attributed."
-          : "Identical research reused without another partner call.",
+          ? "Fresh web evidence captured, attributed, and selected for Gemini."
+          : "Identical research reused and selected without another partner call.",
       );
     } catch (caught: unknown) {
       setError(
@@ -290,7 +298,9 @@ export default function ProductionResearch({ projectId }: Props) {
 
         {records.slice(0, 3).map((record) => (
           <article
-            className="research-record"
+            className={`research-record${
+              selectedResearchId === record.research_id ? " selected" : ""
+            }`}
             key={record.research_id}
           >
             <header>
@@ -298,7 +308,18 @@ export default function ProductionResearch({ projectId }: Props) {
                 <span>PARALLEL SEARCH</span>
                 <strong>{record.evidence.objective}</strong>
               </div>
-              <code>{record.evidence.search_id}</code>
+              <div className="research-record-meta">
+                <code>{record.evidence.search_id}</code>
+                <button
+                  type="button"
+                  onClick={() => onSelected(record.research_id)}
+                  disabled={selectedResearchId === record.research_id}
+                >
+                  {selectedResearchId === record.research_id
+                    ? "Selected for Director"
+                    : "Use for Director"}
+                </button>
+              </div>
             </header>
 
             <div className="research-source-grid">

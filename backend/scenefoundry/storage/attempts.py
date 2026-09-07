@@ -2,6 +2,10 @@ import re
 
 from google.cloud import firestore
 
+from scenefoundry.domain.director_grounding import (
+    DirectorGrounding,
+)
+
 
 def create_attempt(
     db: firestore.Client,
@@ -9,6 +13,7 @@ def create_attempt(
     studio_project_id: str,
     attempt_id: str,
     model: str,
+    grounding: DirectorGrounding | None = None,
 ) -> None:
     """Create a planned attempt; raise a conflict if its ID already exists."""
     for identifier in (studio_project_id, attempt_id):
@@ -17,17 +22,34 @@ def create_attempt(
     if not model.strip():
         raise ValueError("Model must not be blank.")
 
+    if (
+        grounding is not None
+        and grounding.studio_project_id != studio_project_id
+    ):
+        raise ValueError(
+            "Research grounding belongs to another project."
+        )
+
     reference = db.document(
-        "projects", studio_project_id, "attempts", attempt_id
+        "projects",
+        studio_project_id,
+        "attempts",
+        attempt_id,
     )
+    payload: dict[str, object] = {
+        "status": "planned",
+        "model": model,
+        "created_at": firestore.SERVER_TIMESTAMP,
+        "usage": None,
+        "cost_micro_usd": None,
+    }
+    if grounding is not None:
+        payload["grounding"] = grounding.model_dump(
+            mode="json"
+        )
+
     reference.create(
-        {
-            "status": "planned",
-            "model": model,
-            "created_at": firestore.SERVER_TIMESTAMP,
-            "usage": None,
-            "cost_micro_usd": None,
-        },
+        payload,
         timeout=15,
     )
 

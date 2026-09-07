@@ -225,6 +225,32 @@
   margin-top: 16px;
 }
 
+.research-record.selected {
+  border-color: rgba(122, 232, 181, 0.42);
+  box-shadow: inset 3px 0 0 rgba(122, 232, 181, 0.75);
+}
+
+.research-record-meta {
+  justify-items: end;
+}
+
+.research-record-meta button {
+  padding: 7px 10px;
+  border: 1px solid rgba(168, 139, 255, 0.32);
+  border-radius: 999px;
+  color: #d8ceff;
+  background: rgba(168, 139, 255, 0.08);
+  font-size: 0.65rem;
+}
+
+.research-record-meta button:disabled {
+  cursor: default;
+  border-color: rgba(122, 232, 181, 0.3);
+  color: #a9efcc;
+  background: rgba(74, 181, 128, 0.08);
+  opacity: 1;
+}
+
 .research-record > header,
 .research-record > footer {
   display: flex;
