@@ -7,6 +7,9 @@ import os
 from google.cloud import firestore, storage
 
 from scenefoundry.paths import local_data_root
+from scenefoundry.video.cinematic_artifacts import (
+    save_cinematic_clip_provenance,
+)
 from scenefoundry.storage.cloud_media import upload_video
 from scenefoundry.storage.veo_previews import (
     CloudVideo,
@@ -49,9 +52,12 @@ def complete_veo(
         return result | {"status": "succeeded"}
 
     source_id = data.get("source_attempt_id")
+    revision_id = data.get("source_revision_id")
     shot_id = data.get("source_shot_id")
-    if not source_id or not shot_id:
-        raise ValueError("Video attempt lacks source shot provenance.")
+    if not source_id or not revision_id or not shot_id:
+        raise ValueError(
+            "Video attempt lacks source shot and revision provenance."
+        )
 
     saved = attempt.collection("provider").document("operation").get(timeout=15)
     if not saved.exists:
@@ -124,6 +130,19 @@ def complete_veo(
         )
     finally:
         media_client.close()
+
+    save_cinematic_clip_provenance(
+        db,
+        studio_project_id=studio_project_id,
+        source_attempt_id=source_id,
+        source_revision_id=revision_id,
+        shot_id=shot_id,
+        video_attempt_id=attempt_id,
+        video_sha256=stored.sha256,
+        bucket_name=stored.bucket_name,
+        object_name=stored.object_name,
+        generation=stored.generation,
+    )
 
     save_veo_preview(
         db,
