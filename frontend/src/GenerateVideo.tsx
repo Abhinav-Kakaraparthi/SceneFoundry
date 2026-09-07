@@ -14,6 +14,12 @@ type Props = {
   onUpdated: () => void;
 };
 
+class VideoRequestError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+  }
+}
+
 async function post(path: string, body?: object): Promise<Record<string, unknown>> {
   const response = await authenticatedFetch(path, {
     method: "POST",
@@ -22,7 +28,8 @@ async function post(path: string, body?: object): Promise<Record<string, unknown
   });
   const data = await response.json();
   if (!response.ok) {
-    throw new Error(
+    throw new VideoRequestError(
+      response.status,
       typeof data.detail === "string"
         ? data.detail
         : `Video request failed (HTTP ${response.status}).`,
@@ -117,9 +124,18 @@ export default function GenerateVideo(props: Props) {
       }
     } catch (error) {
       setAutoChecking(false);
-      setMessage(
-        error instanceof Error ? error.message : "Could not check progress.",
-      );
+      if (error instanceof VideoRequestError && error.status === 404) {
+        localStorage.removeItem(storageKey);
+        setAttemptId(null);
+        automaticChecks.current = 0;
+        setMessage(
+          "The saved attempt no longer exists. You can generate this shot.",
+        );
+      } else {
+        setMessage(
+          error instanceof Error ? error.message : "Could not check progress.",
+        );
+      }
     } finally {
       checking.current = false;
       setBusy(false);
