@@ -58,7 +58,10 @@ def search_production_references(
         objective=request.objective,
         search_queries=list(request.search_queries),
         mode="fast",
-        max_results=request.max_results,
+        max_chars_total=min(
+            12_000,
+            request.max_results * 2_000,
+        ),
     )
 
     search_id = str(
@@ -70,7 +73,10 @@ def search_production_references(
         )
 
     sources: list[ResearchSource] = []
-    for result in _attribute(response, "results", ()) or ():
+    raw_results = list(
+        _attribute(response, "results", ()) or ()
+    )
+    for result in raw_results[: request.max_results]:
         url = str(_attribute(result, "url", "")).strip()
         title = str(_attribute(result, "title", "")).strip()
         raw_excerpts = (

@@ -5,6 +5,7 @@ import BriefForm from "./BriefForm";
 import ShotBoard, { type Scene } from "./ShotBoard";
 import StudioShell from "./StudioShell";
 import ScreenplayWorkspace from "./ScreenplayWorkspace";
+import ProductionResearch from "./ProductionResearch";
 import { useEffect, useState } from "react";
 
 
@@ -144,6 +145,8 @@ export default function App() {
         </div>
 
         <ScreenplayWorkspace projectId={projectId} />
+
+        <ProductionResearch projectId={projectId} />
 
         <BriefForm projectId={projectId} onCreated={selectAttempt} />
 

@@ -10,8 +10,9 @@ type Props = {
 const navigation = [
   { index: "01", label: "Overview", href: "#overview" },
   { index: "02", label: "Develop", href: "#develop" },
-  { index: "03", label: "Budget", href: "#budget-overview" },
-  { index: "04", label: "Timeline", href: "#scene-title" },
+  { index: "03", label: "Research", href: "#research" },
+  { index: "04", label: "Budget", href: "#budget-overview" },
+  { index: "05", label: "Timeline", href: "#scene-title" },
 ];
 
 function BrandMark() {
