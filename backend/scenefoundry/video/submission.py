@@ -9,6 +9,8 @@ def submit_veo(
     client: genai.Client,
     prompt: str,
     duration_seconds: int = 4,
+    *,
+    aspect_ratio: str = "16:9",
 ) -> str:
     """Return the operation name; callers must persist it before polling."""
     if not isinstance(prompt, str):
@@ -18,7 +20,10 @@ def submit_veo(
     if not 1 <= len(prompt) <= 4000:
         raise ValueError("Video prompt must contain 1 to 4000 characters.")
 
-    config = build_veo_config(duration_seconds)
+    config = build_veo_config(
+        duration_seconds,
+        aspect_ratio=aspect_ratio,
+    )
     operation = client.models.generate_videos(
         model=VEO_MODEL,
         prompt=prompt,

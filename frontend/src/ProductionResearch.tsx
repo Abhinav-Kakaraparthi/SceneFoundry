@@ -38,6 +38,8 @@ type Props = {
   projectId: string;
   selectedResearchId: string | null;
   onSelected: (researchId: string | null) => void;
+  initialResearchObjective?: string;
+  initialResearchQueries?: readonly [string, string];
 };
 
 const initialObjective =
@@ -46,7 +48,7 @@ const initialObjective =
 const initialQueries = [
   "late-night cafe interior practical lighting cinematic reference",
   "red envelope symbolism cultural context film production",
-];
+] as const;
 
 async function errorDetail(response: Response): Promise<string> {
   try {
@@ -80,10 +82,16 @@ export default function ProductionResearch({
   projectId,
   selectedResearchId,
   onSelected,
+  initialResearchObjective = initialObjective,
+  initialResearchQueries = initialQueries,
 }: Props) {
   const basePath = `/v1/projects/${projectId}/research`;
-  const [objective, setObjective] = useState(initialObjective);
-  const [queries, setQueries] = useState(initialQueries);
+  const [objective, setObjective] = useState(
+    initialResearchObjective,
+  );
+  const [queries, setQueries] = useState([
+    ...initialResearchQueries,
+  ]);
   const [records, setRecords] = useState<ResearchRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);

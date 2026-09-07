@@ -31,6 +31,7 @@ def start_veo(
     attempt_id: str,
     prompt: str,
     duration_seconds: int = 4,
+    aspect_ratio: str = "16:9",
     source_attempt_id: str | None = None,
     source_revision_id: str | None = None,
     source_shot_id: str | None = None,
@@ -63,7 +64,10 @@ def start_veo(
             "prompt_version": prompt_version,
         }
     prompt = prompt.strip()
-    config = build_veo_config(duration_seconds)
+    config = build_veo_config(
+        duration_seconds,
+        aspect_ratio=aspect_ratio,
+    )
     estimate = estimate_veo_micro_usd(VEO_MODEL, VEO_LOCATION, config)
     identifiers = {
         "studio_project_id": studio_project_id,
@@ -104,7 +108,12 @@ def start_veo(
                 raise RuntimeError("Attempt was already claimed.")
 
             stage = "submission"
-            operation_name = submit_veo(client, prompt, duration_seconds)
+            operation_name = submit_veo(
+                client,
+                prompt,
+                duration_seconds,
+                aspect_ratio=aspect_ratio,
+            )
 
             stage = "operation_checkpoint"
             save_video_operation(attempt, operation_name)

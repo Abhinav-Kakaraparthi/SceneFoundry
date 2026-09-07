@@ -114,7 +114,12 @@ def complete_veo(
         directory, expected_operation_name=operation_name
     )
     duration = data["video_config"]["duration_seconds"]
-    verify_veo_mp4(video_path, ffprobe=ffprobe, duration_seconds=duration)
+    verify_veo_mp4(
+        video_path,
+        ffprobe=ffprobe,
+        duration_seconds=duration,
+        aspect_ratio=data["video_config"]["aspect_ratio"],
+    )
     bucket_name = os.environ.get(
         "SCENEFOUNDRY_MEDIA_BUCKET",
         f"{db.project}-media",

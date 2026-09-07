@@ -10,3 +10,7 @@
 @import "./styles/develop.css";
 @import "./styles/research.css";
 @import "./styles/review.css";
+@import "./styles/catalog.css";
+@import "./styles/catalog-controls.css";
+@import "./styles/dashboard.css";
+@import "./styles/production-cards.css";

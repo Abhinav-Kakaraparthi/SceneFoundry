@@ -18,7 +18,12 @@ from scenefoundry.domain.revision import (
     SceneRevision,
     build_scene_revision,
 )
+from scenefoundry.domain.production_direction import (
+    ProductionDirection,
+    create_production_direction,
+)
 from scenefoundry.domain.scene import SceneSpec
+from scenefoundry.storage.projects import read_production_project
 from scenefoundry.storage.research import read_production_research
 from scenefoundry.storage.revisions import save_scene_revision
 from scenefoundry.storage.users import read_verified_user
@@ -123,6 +128,30 @@ def _initial_scene_revision(scene: SceneSpec) -> SceneRevision:
     )
 
 
+def _load_production_direction(
+    db,
+    *,
+    project_id: str,
+    requested_by: str,
+) -> ProductionDirection | None:
+    if not project_id.startswith("project_"):
+        return None
+
+    try:
+        project = read_production_project(
+            db,
+            project_id=project_id,
+            created_by=requested_by,
+        )
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Production project not found.",
+        ) from error
+
+    return create_production_direction(project)
+
+
 @router.post(
     "/{project_id}/attempts",
     response_model=GenerateResponse,
@@ -135,6 +164,11 @@ async def submit_brief(
     db: Database,
 ) -> GenerateResponse:
     registered = _require_registered_identity(db, current_user)
+    direction = _load_production_direction(
+        db,
+        project_id=project_id,
+        requested_by=registered.uid,
+    )
     grounding = _load_director_grounding(
         db,
         project_id=project_id,
@@ -151,6 +185,7 @@ async def submit_brief(
             reservation_micro_usd=DIRECTOR_RESERVATION_MICRO_USD,
             rate=GEMINI_35_FLASH_GLOBAL_STANDARD,
             grounding=grounding,
+            direction=direction,
         )
 
         revision = _initial_scene_revision(scene)

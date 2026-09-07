@@ -4,6 +4,10 @@ from scenefoundry.domain.director_grounding import (
     DirectorGrounding,
     render_grounded_director_brief,
 )
+from scenefoundry.domain.production_direction import (
+    ProductionDirection,
+    render_production_director_brief,
+)
 
 
 async def run_director(
@@ -11,6 +15,7 @@ async def run_director(
     model: str,
     *,
     grounding: DirectorGrounding | None = None,
+    direction: ProductionDirection | None = None,
 ) -> tuple[str, list[dict[str, object]]]:
     """Execute the director with optional server-verified research."""
 
@@ -22,12 +27,17 @@ async def run_director(
 
     director_input = (
         brief
-        if grounding is None
-        else render_grounded_director_brief(
+        if direction is None
+        else render_production_director_brief(
             brief,
-            grounding,
+            direction,
         )
     )
+    if grounding is not None:
+        director_input = render_grounded_director_brief(
+            director_input,
+            grounding,
+        )
 
     return await run_agent(
         build_director(model),

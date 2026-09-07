@@ -5,6 +5,7 @@ import { authenticatedFetch } from "./authSession";
 type Props = {
   projectId: string;
   researchId: string | null;
+  initialBrief?: string;
   onCreated: (attemptId: string) => void;
 };
 
@@ -29,10 +30,11 @@ const examples = [
 export default function BriefForm({
   projectId,
   researchId,
+  initialBrief = "",
   onCreated,
 }: Props) {
   const storageKey = `scenefoundry:pending:${projectId}`;
-  const [brief, setBrief] = useState("");
+  const [brief, setBrief] = useState(initialBrief);
   const [attemptId, setAttemptId] = useState<string | null>(() => {
     try {
       return sessionStorage.getItem(storageKey);

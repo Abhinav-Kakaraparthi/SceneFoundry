@@ -11,6 +11,7 @@ def verify_veo_mp4(
     *,
     ffprobe: str,
     duration_seconds: int,
+    aspect_ratio: str = "16:9",
 ) -> dict:
     """Require one 720p/24fps video stream, expected frames, and audio."""
     if type(duration_seconds) is not int or duration_seconds not in (4, 6, 8):
@@ -42,8 +43,14 @@ def verify_veo_mp4(
         raise ValueError("Expected one video stream and generated audio.")
 
     video = videos[0]
-    if (video.get("width"), video.get("height")) != (1280, 720):
-        raise ValueError("Expected 1280x720 video.")
+    if aspect_ratio not in ("9:16", "16:9"):
+        raise ValueError("Video aspect ratio is unsupported.")
+    expected = (720, 1280) if aspect_ratio == "9:16" else (1280, 720)
+    actual = (video.get("width"), video.get("height"))
+    if actual != expected:
+        raise ValueError(
+            f"Expected {expected[0]}x{expected[1]} video."
+        )
 
     try:
         fps = Fraction(video["avg_frame_rate"])

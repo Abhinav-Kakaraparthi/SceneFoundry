@@ -1,9 +1,11 @@
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { useAuth } from "./AuthGate";
 
 type Props = {
-  projectId: string;
-  attemptId: string;
+  projectId: string | null;
+  projectTitle: string | null;
+  attemptId: string | null;
+  onHome: () => void;
   children: ReactNode;
 };
 
@@ -25,23 +27,39 @@ function BrandMark() {
   );
 }
 
-export default function StudioShell({
-  projectId,
-  attemptId,
-  children,
-}: Props) {
-  const { user, signOut } = useAuth();
-  const initials = user.name
+function initials(value: string): string {
+  return value
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
+}
+
+export default function StudioShell({
+  projectId,
+  projectTitle,
+  attemptId,
+  onHome,
+  children,
+}: Props) {
+  const { user, signOut } = useAuth();
+  const userInitials = initials(user.name);
+
+  function returnHome(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault();
+    onHome();
+  }
 
   return (
     <div className="studio-shell">
       <aside className="studio-sidebar">
-        <a className="shell-brand" href="#overview" aria-label="SceneFoundry studio">
+        <a
+          className="shell-brand"
+          href="#productions"
+          onClick={returnHome}
+          aria-label="SceneFoundry productions"
+        >
           <BrandMark />
           <span>
             <strong>SceneFoundry</strong>
@@ -50,24 +68,48 @@ export default function StudioShell({
         </a>
 
         <div className="sidebar-project">
-          <span className="sidebar-label">ACTIVE PROJECT</span>
+          <span className="sidebar-label">
+            {projectId ? "ACTIVE PROJECT" : "PRODUCTION CATALOG"}
+          </span>
+
           <div className="project-identity">
-            <span className="project-avatar">DC</span>
+            <span className="project-avatar">
+              {initials(projectTitle ?? "SceneFoundry")}
+            </span>
             <span>
-              <strong>Demo Café</strong>
-              <small>{projectId}</small>
+              <strong>
+                {projectTitle ?? "Your productions"}
+              </strong>
+              <small>
+                {projectId ?? "Create or continue a story"}
+              </small>
             </span>
           </div>
         </div>
 
-        <nav className="studio-navigation" aria-label="Studio navigation">
+        <nav
+          className="studio-navigation"
+          aria-label="Studio navigation"
+        >
           <span className="sidebar-label">WORKSPACE</span>
-          {navigation.map((item) => (
-            <a key={item.href} className="nav-link" href={item.href}>
-              <span className="nav-index">{item.index}</span>
-              <span>{item.label}</span>
+
+          {projectId ? (
+            navigation.map((item) => (
+              <a
+                key={item.href}
+                className="nav-link"
+                href={item.href}
+              >
+                <span className="nav-index">{item.index}</span>
+                <span>{item.label}</span>
+              </a>
+            ))
+          ) : (
+            <a className="nav-link" href="#productions">
+              <span className="nav-index">01</span>
+              <span>Productions</span>
             </a>
-          ))}
+          )}
         </nav>
 
         <div className="sidebar-footer">
@@ -87,7 +129,11 @@ export default function StudioShell({
           <div className="breadcrumb">
             <span>Studio</span>
             <span>/</span>
-            <strong>Director workspace</strong>
+            <strong>
+              {projectId
+                ? "Director workspace"
+                : "Production catalog"}
+            </strong>
           </div>
 
           <div className="topbar-context">
@@ -95,9 +141,13 @@ export default function StudioShell({
               <span className="status-light" />
               Live
             </span>
-            <span className="attempt-pill">
-              Attempt {attemptId.slice(0, 8)}
-            </span>
+
+            {attemptId && (
+              <span className="attempt-pill">
+                Attempt {attemptId.slice(0, 8)}
+              </span>
+            )}
+
             <button
               className="user-chip"
               type="button"
@@ -105,12 +155,20 @@ export default function StudioShell({
               title={`Signed in as ${user.email}. Click to sign out.`}
             >
               {user.picture_url ? (
-                <img src={user.picture_url} alt="" referrerPolicy="no-referrer" />
+                <img
+                  src={user.picture_url}
+                  alt=""
+                  referrerPolicy="no-referrer"
+                />
               ) : (
-                <span className="user-chip-avatar" aria-hidden="true">
-                  {initials}
+                <span
+                  className="user-chip-avatar"
+                  aria-hidden="true"
+                >
+                  {userInitials}
                 </span>
               )}
+
               <span className="user-chip-copy">
                 <strong>{user.name}</strong>
                 <small>Sign out</small>

@@ -8,6 +8,9 @@ from scenefoundry.billing.rates import TokenRateCard
 from scenefoundry.domain.director_grounding import (
     DirectorGrounding,
 )
+from scenefoundry.domain.production_direction import (
+    ProductionDirection,
+)
 from scenefoundry.domain.scene import SceneSpec
 
 
@@ -20,6 +23,7 @@ async def generate_scene(
     reservation_micro_usd: int,
     rate: TokenRateCard,
     grounding: DirectorGrounding | None = None,
+    direction: ProductionDirection | None = None,
 ) -> SceneSpec:
     """Generate a scene with a reservation and durable response accounting."""
     brief = brief.strip()
@@ -34,6 +38,13 @@ async def generate_scene(
         raise ValueError(
             "Research grounding belongs to another project."
         )
+    if (
+        direction is not None
+        and direction.project_id != studio_project_id
+    ):
+        raise ValueError(
+            "Production direction belongs to another project."
+        )
 
     return await run_accounted(
         db,
@@ -47,6 +58,7 @@ async def generate_scene(
             brief,
             rate.model,
             grounding=grounding,
+            direction=direction,
         ),
         validate=SceneSpec.model_validate_json,
     )

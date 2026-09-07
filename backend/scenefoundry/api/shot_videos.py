@@ -7,9 +7,15 @@ from google.api_core.exceptions import Conflict
 from google.cloud import firestore
 from pydantic import BaseModel, ConfigDict, Field
 
+from scenefoundry.api.auth import CurrentUser
 from scenefoundry.api.projects import get_db
 from scenefoundry.domain.approval import require_approved_revision
+from scenefoundry.domain.production_direction import (
+    ProductionDirection,
+    create_production_direction,
+)
 from scenefoundry.storage.approvals import read_revision_approval
+from scenefoundry.storage.projects import read_production_project
 from scenefoundry.storage.revisions import read_scene_revision
 from scenefoundry.video.production import start_veo
 from scenefoundry.video.shot_request import build_shot_video_request
@@ -26,6 +32,30 @@ class VideoSubmission(BaseModel):
     revision_id: str = Field(pattern=r"^[a-z][a-z0-9_]{0,63}$")
 
 
+def _load_production_direction(
+    db,
+    *,
+    project_id: str,
+    requested_by: str,
+) -> ProductionDirection | None:
+    if not project_id.startswith("project_"):
+        return None
+
+    try:
+        project = read_production_project(
+            db,
+            project_id=project_id,
+            created_by=requested_by,
+        )
+    except ValueError as error:
+        raise HTTPException(
+            404,
+            "Production project not found.",
+        ) from error
+
+    return create_production_direction(project)
+
+
 @router.post(
     "/{project_id}/attempts/{source_attempt_id}/shots/{shot_id}/videos",
     status_code=202,
@@ -35,8 +65,15 @@ def submit_shot_video(
     source_attempt_id: AttemptId,
     shot_id: ShotId,
     request: VideoSubmission,
+    current_user: CurrentUser,
     db: Annotated[firestore.Client, Depends(get_db)],
 ) -> dict[str, str]:
+    direction = _load_production_direction(
+        db,
+        project_id=project_id,
+        requested_by=current_user.uid,
+    )
+
     try:
         revision = read_scene_revision(
             db,
@@ -58,7 +95,11 @@ def submit_shot_video(
     except ValueError as error:
         raise HTTPException(409, str(error)) from error
     try:
-        prepared = build_shot_video_request(revision.scene, shot_id)
+        prepared = build_shot_video_request(
+            revision.scene,
+            shot_id,
+            direction=direction,
+        )
     except ValueError as error:
         raise HTTPException(422, str(error)) from error
 
@@ -69,6 +110,7 @@ def submit_shot_video(
             attempt_id=request.attempt_id,
             prompt=prepared.prompt,
             duration_seconds=prepared.duration_seconds,
+            aspect_ratio=prepared.aspect_ratio,
             source_attempt_id=source_attempt_id,
             source_revision_id=request.revision_id,
             source_shot_id=prepared.shot_id,
