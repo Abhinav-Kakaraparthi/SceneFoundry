@@ -32,6 +32,7 @@ def start_veo(
     prompt: str,
     duration_seconds: int = 4,
     source_attempt_id: str | None = None,
+    source_revision_id: str | None = None,
     source_shot_id: str | None = None,
     prompt_version: str | None = None,
 ) -> str:
@@ -40,11 +41,15 @@ def start_veo(
         raise ValueError("Video prompt must contain 1 to 4000 characters.")
     source = {}
     if any(value is not None for value in (
-        source_attempt_id, source_shot_id, prompt_version
+        source_attempt_id, source_revision_id, source_shot_id, prompt_version
     )):
         if (
             not isinstance(source_attempt_id, str)
             or not re.fullmatch(r"[0-9a-f]{32}", source_attempt_id)
+            or not isinstance(source_revision_id, str)
+            or not re.fullmatch(
+                r"[a-z][a-z0-9_]{0,63}", source_revision_id
+            )
             or not isinstance(source_shot_id, str)
             or not re.fullmatch(r"[a-z][a-z0-9_]{0,63}", source_shot_id)
             or not isinstance(prompt_version, str)
@@ -53,6 +58,7 @@ def start_veo(
             raise ValueError("Complete source shot provenance is required.")
         source = {
             "source_attempt_id": source_attempt_id,
+            "source_revision_id": source_revision_id,
             "source_shot_id": source_shot_id,
             "prompt_version": prompt_version,
         }

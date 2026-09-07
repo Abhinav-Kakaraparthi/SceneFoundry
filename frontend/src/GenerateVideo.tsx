@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 type Props = {
   projectId: string;
   sourceAttemptId: string;
+  revisionId: string;
   shotId: string;
   frameCount: number;
   fps: number;
@@ -30,7 +31,8 @@ async function post(path: string, body?: object): Promise<Record<string, unknown
 
 export default function GenerateVideo(props: Props) {
   const storageKey =
-    `scenefoundry:veo:${props.projectId}:${props.sourceAttemptId}:${props.shotId}`;
+    `scenefoundry:veo:${props.projectId}:${props.sourceAttemptId}:` +
+    `${props.revisionId}:${props.shotId}`;
   const [attemptId, setAttemptId] = useState<string | null>(
     () => localStorage.getItem(storageKey),
   );
@@ -62,7 +64,10 @@ export default function GenerateVideo(props: Props) {
 
       await post(
         `${base}/attempts/${props.sourceAttemptId}/shots/${props.shotId}/videos`,
-        { attempt_id: id },
+        {
+          attempt_id: id,
+          revision_id: props.revisionId,
+        },
       );
       setMessage("Submitted. Check progress shortly.");
       props.onUpdated();

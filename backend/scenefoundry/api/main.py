@@ -16,6 +16,7 @@ from scenefoundry.api.veo import router as veo_router
 from scenefoundry.api.scenes import router as scenes_router
 from scenefoundry.api.projects import router as projects_router
 from scenefoundry.api.artifacts import router as artifacts_router
+from scenefoundry.api.revision_status import router as revision_status_router
 from scenefoundry.api.revision_edits import router as revision_edits_router
 from scenefoundry.api.revisions import router as revisions_router
 
@@ -23,6 +24,7 @@ app = FastAPI(title="SceneFoundry", version="0.1.0")
 app.include_router(scenes_router)
 app.include_router(projects_router)
 app.include_router(artifacts_router)
+app.include_router(revision_status_router)
 app.include_router(revision_edits_router)
 app.include_router(revisions_router)
 app.include_router(previews_router)

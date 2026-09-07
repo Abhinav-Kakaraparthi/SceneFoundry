@@ -8,7 +8,9 @@ from google.cloud import firestore
 from pydantic import BaseModel, ConfigDict, Field
 
 from scenefoundry.api.projects import get_db
-from scenefoundry.domain.scene import SceneSpec
+from scenefoundry.domain.approval import require_approved_revision
+from scenefoundry.storage.approvals import read_revision_approval
+from scenefoundry.storage.revisions import read_scene_revision
 from scenefoundry.video.production import start_veo
 from scenefoundry.video.shot_request import build_shot_video_request
 
@@ -21,6 +23,7 @@ ShotId = Annotated[str, Path(pattern=r"^[a-z][a-z0-9_]{0,63}$")]
 class VideoSubmission(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     attempt_id: str = Field(pattern=r"^[0-9a-f]{32}$")
+    revision_id: str = Field(pattern=r"^[a-z][a-z0-9_]{0,63}$")
 
 
 @router.post(
@@ -34,20 +37,28 @@ def submit_shot_video(
     request: VideoSubmission,
     db: Annotated[firestore.Client, Depends(get_db)],
 ) -> dict[str, str]:
-    source = db.document("projects", project_id, "attempts", source_attempt_id)
-    snapshot = source.get(timeout=15)
-    if not snapshot.exists:
-        raise HTTPException(404, "Source attempt not found.")
-    if snapshot.get("status") != "succeeded":
-        raise HTTPException(409, "Source scene is not ready.")
-
-    saved = source.collection("responses").document("final").get(timeout=15)
-    if not saved.exists:
-        raise HTTPException(409, "Source scene response is unavailable.")
-
-    scene = SceneSpec.model_validate_json(saved.get("text"))
     try:
-        prepared = build_shot_video_request(scene, shot_id)
+        revision = read_scene_revision(
+            db,
+            studio_project_id=project_id,
+            source_attempt_id=source_attempt_id,
+            revision_id=request.revision_id,
+        )
+    except ValueError as error:
+        raise HTTPException(404, str(error)) from error
+
+    approval = read_revision_approval(
+        db,
+        studio_project_id=project_id,
+        source_attempt_id=source_attempt_id,
+        revision_id=request.revision_id,
+    )
+    try:
+        require_approved_revision(request.revision_id, approval)
+    except ValueError as error:
+        raise HTTPException(409, str(error)) from error
+    try:
+        prepared = build_shot_video_request(revision.scene, shot_id)
     except ValueError as error:
         raise HTTPException(422, str(error)) from error
 
@@ -59,6 +70,7 @@ def submit_shot_video(
             prompt=prepared.prompt,
             duration_seconds=prepared.duration_seconds,
             source_attempt_id=source_attempt_id,
+            source_revision_id=request.revision_id,
             source_shot_id=prepared.shot_id,
             prompt_version=prepared.prompt_version,
         )

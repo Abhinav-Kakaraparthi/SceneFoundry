@@ -14,10 +14,27 @@ type Budget = {
   available_micro_usd: number;
 };
 
+type RevisionStatusRecord = {
+  revision: {
+    revision_id: string;
+    version: number;
+    scene: Scene;
+  };
+  state: "pending" | "approved" | "changes_requested";
+};
+
 type Workspace =
   | { status: "loading" }
   | { status: "error"; message: string }
-  | { status: "ready"; scene: Scene; budget: Budget; veoPreviews: VeoPreviewRecord[]; previews: PreviewRecord[]; animations: AnimationRecord[] };
+  | {
+      status: "ready";
+      revisionId: string;
+      scene: Scene;
+      budget: Budget;
+      veoPreviews: VeoPreviewRecord[];
+      previews: PreviewRecord[];
+      animations: AnimationRecord[];
+    };
 
 const projectId = "demo_cafe";
 const initialAttemptId = "9480269091d94b628b5cf97af3075260";
@@ -53,8 +70,8 @@ export default function App() {
     setWorkspace({ status: "loading" });
 
     Promise.all([
-      readJson<Scene>(
-        `${basePath}/attempts/${attemptId}/scene`,
+      readJson<RevisionStatusRecord[]>(
+        `${basePath}/attempts/${attemptId}/revisions/status`,
         controller.signal,
       ),
       readJson<VeoPreviewRecord[]>(
@@ -71,9 +88,30 @@ export default function App() {
         controller.signal,
       ),
     ])
-      .then(([scene, veoPreviews, budget, previews, animations]) => {
+      .then(([statuses, veoPreviews, budget, previews, animations]) => {
+        const approved = statuses
+          .filter((item) => item.state === "approved")
+          .sort(
+            (left, right) =>
+              right.revision.version - left.revision.version,
+          )[0];
+
+        if (!approved) {
+          throw new Error(
+            "This scene does not have an approved production revision.",
+          );
+        }
+
         if (!controller.signal.aborted) {
-          setWorkspace({ status: "ready", scene, veoPreviews, budget, previews, animations });
+          setWorkspace({
+            status: "ready",
+            revisionId: approved.revision.revision_id,
+            scene: approved.revision.scene,
+            veoPreviews,
+            budget,
+            previews,
+            animations,
+          });
         }
       })
       .catch((error: unknown) => {
@@ -140,6 +178,7 @@ export default function App() {
             <ShotBoard
               projectId={projectId}
               sourceAttemptId={attemptId}
+              revisionId={workspace.revisionId}
               scene={workspace.scene}
               availableMicroUsd={workspace.budget.available_micro_usd}
               veoPreviews={workspace.veoPreviews}

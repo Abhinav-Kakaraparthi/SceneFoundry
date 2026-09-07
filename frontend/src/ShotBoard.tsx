@@ -21,6 +21,7 @@ export type Scene = {
 type Props = {
   projectId: string;
   sourceAttemptId: string;
+  revisionId: string;
   scene: Scene;
   availableMicroUsd: number;
   veoPreviews: VeoPreviewRecord[];
@@ -51,6 +52,7 @@ function getState(
 export default function ShotBoard({
   projectId,
   sourceAttemptId,
+  revisionId,
   scene,
   availableMicroUsd,
   veoPreviews,
@@ -272,9 +274,10 @@ export default function ShotBoard({
             </div>
 
             <GenerateVideo
-              key={`${sourceAttemptId}:${current.shot.shot_id}`}
+              key={`${sourceAttemptId}:${revisionId}:${current.shot.shot_id}`}
               projectId={projectId}
               sourceAttemptId={sourceAttemptId}
+              revisionId={revisionId}
               shotId={current.shot.shot_id}
               frameCount={
                 current.shot.frames.end - current.shot.frames.start
