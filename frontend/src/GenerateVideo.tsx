@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { authenticatedFetch } from "./authSession";
 
 type Props = {
   projectId: string;
@@ -14,7 +15,7 @@ type Props = {
 };
 
 async function post(path: string, body?: object): Promise<Record<string, unknown>> {
-  const response = await fetch(path, {
+  const response = await authenticatedFetch(path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),

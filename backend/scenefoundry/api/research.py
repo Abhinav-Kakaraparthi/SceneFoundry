@@ -1,5 +1,7 @@
 """Authenticated Parallel production-research API."""
 
+import logging
+
 from typing import Annotated
 
 from fastapi import (
@@ -36,6 +38,8 @@ from scenefoundry.storage.research import (
 )
 from scenefoundry.storage.users import read_verified_user
 
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/v1/projects/{project_id}/research",
@@ -160,6 +164,11 @@ def create_research(
             request,
         )
     except Exception as error:
+        logger.exception(
+            "Parallel production research failed: project=%s error_type=%s",
+            project_id,
+            type(error).__name__,
+        )
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Parallel production research failed.",
