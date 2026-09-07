@@ -21,6 +21,7 @@ from scenefoundry.api.revision_status import router as revision_status_router
 from scenefoundry.api.revision_edits import router as revision_edits_router
 from scenefoundry.api.revisions import router as revisions_router
 from scenefoundry.api.screenplays import router as screenplays_router
+from scenefoundry.api.research import router as research_router
 
 app = FastAPI(title="SceneFoundry", version="0.1.0")
 app.include_router(scenes_router)
@@ -31,6 +32,7 @@ app.include_router(revision_status_router)
 app.include_router(revision_edits_router)
 app.include_router(revisions_router)
 app.include_router(screenplays_router)
+app.include_router(research_router)
 app.include_router(previews_router)
 app.include_router(generation_router)
 
