@@ -9,6 +9,7 @@ type Props = {
   fps: number;
   availableMicroUsd: number;
   hasVideo: boolean;
+  locked: boolean;
   onUpdated: () => void;
 };
 
@@ -47,7 +48,13 @@ export default function GenerateVideo(props: Props) {
   const base = `/v1/veo/projects/${encodeURIComponent(props.projectId)}`;
 
   async function generate() {
-    if (busy || attemptId || props.hasVideo || !supported) return;
+    if (
+      busy ||
+      attemptId ||
+      props.hasVideo ||
+      props.locked ||
+      !supported
+    ) return;
     if (props.availableMicroUsd < estimate) return;
 
     setBusy(true);
@@ -133,6 +140,17 @@ export default function GenerateVideo(props: Props) {
   }, [attemptId, busy, autoChecking, checkProgress]);
 
   if (props.hasVideo && !attemptId) return null;
+  if (props.locked && !attemptId) {
+    return (
+      <div className="video-generation locked">
+        <strong>Production locked</strong>
+        <p>
+          The signed-in director must approve this exact revision
+          before Veo can be requested.
+        </p>
+      </div>
+    );
+  }
   if (!supported && !attemptId) {
     return <p>Veo generation supports 24 fps shots lasting 4, 6, or 8 seconds.</p>;
   }

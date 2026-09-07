@@ -6,6 +6,7 @@ import ShotBoard, { type Scene } from "./ShotBoard";
 import StudioShell from "./StudioShell";
 import ScreenplayWorkspace from "./ScreenplayWorkspace";
 import ProductionResearch from "./ProductionResearch";
+import RevisionReview from "./RevisionReview";
 import { useEffect, useState } from "react";
 
 
@@ -31,6 +32,7 @@ type Workspace =
   | {
       status: "ready";
       revisionId: string;
+      revisionState: RevisionStatusRecord["state"];
       scene: Scene;
       budget: Budget;
       veoPreviews: VeoPreviewRecord[];
@@ -92,24 +94,23 @@ export default function App() {
       ),
     ])
       .then(([statuses, veoPreviews, budget, previews, animations]) => {
-        const approved = statuses
-          .filter((item) => item.state === "approved")
-          .sort(
-            (left, right) =>
-              right.revision.version - left.revision.version,
-          )[0];
+        const selected = [...statuses].sort(
+          (left, right) =>
+            right.revision.version - left.revision.version,
+        )[0];
 
-        if (!approved) {
+        if (!selected) {
           throw new Error(
-            "This scene does not have an approved production revision.",
+            "This saved scene has not entered revision review yet.",
           );
         }
 
         if (!controller.signal.aborted) {
           setWorkspace({
             status: "ready",
-            revisionId: approved.revision.revision_id,
-            scene: approved.revision.scene,
+            revisionId: selected.revision.revision_id,
+            revisionState: selected.state,
+            scene: selected.revision.scene,
             veoPreviews,
             budget,
             previews,
@@ -190,10 +191,19 @@ export default function App() {
               Application accounting in USD. Calculated spend is not a confirmed cloud invoice.
             </p>
 
+            <RevisionReview
+              projectId={projectId}
+              attemptId={attemptId}
+              revisionId={workspace.revisionId}
+              state={workspace.revisionState}
+              onUpdated={() => setRevision((value) => value + 1)}
+            />
+
             <ShotBoard
               projectId={projectId}
               sourceAttemptId={attemptId}
               revisionId={workspace.revisionId}
+              productionLocked={workspace.revisionState !== "approved"}
               scene={workspace.scene}
               availableMicroUsd={workspace.budget.available_micro_usd}
               veoPreviews={workspace.veoPreviews}

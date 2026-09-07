@@ -22,6 +22,7 @@ type Props = {
   projectId: string;
   sourceAttemptId: string;
   revisionId: string;
+  productionLocked: boolean;
   scene: Scene;
   availableMicroUsd: number;
   veoPreviews: VeoPreviewRecord[];
@@ -53,6 +54,7 @@ export default function ShotBoard({
   projectId,
   sourceAttemptId,
   revisionId,
+  productionLocked,
   scene,
   availableMicroUsd,
   veoPreviews,
@@ -285,6 +287,7 @@ export default function ShotBoard({
               fps={scene.fps}
               availableMicroUsd={availableMicroUsd}
               hasVideo={Boolean(current.veo)}
+              locked={productionLocked}
               onUpdated={onUpdated}
             />
 

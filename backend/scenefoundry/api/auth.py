@@ -209,3 +209,8 @@ def read_current_user(
         )
 
     return stored
+
+RegisteredUser = Annotated[
+    VerifiedUser,
+    Depends(read_current_user),
+]

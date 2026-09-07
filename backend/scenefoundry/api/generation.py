@@ -14,8 +14,13 @@ from scenefoundry.domain.director_grounding import (
     DirectorGrounding,
     create_director_grounding,
 )
+from scenefoundry.domain.revision import (
+    SceneRevision,
+    build_scene_revision,
+)
 from scenefoundry.domain.scene import SceneSpec
 from scenefoundry.storage.research import read_production_research
+from scenefoundry.storage.revisions import save_scene_revision
 from scenefoundry.storage.users import read_verified_user
 
 
@@ -45,6 +50,7 @@ class GenerateResponse(BaseModel):
 
     attempt_id: str
     scene: SceneSpec
+    revision: SceneRevision
     grounding: DirectorGrounding | None = None
 
 
@@ -104,6 +110,19 @@ def _load_director_grounding(
     return create_director_grounding(record)
 
 
+def _initial_scene_revision(scene: SceneSpec) -> SceneRevision:
+    return build_scene_revision(
+        revision_id="revision_001",
+        version=1,
+        parent_revision_id=None,
+        created_by="agent",
+        change_note=(
+            "Initial Gemini Director scene plan awaiting human review."
+        ),
+        scene=scene,
+    )
+
+
 @router.post(
     "/{project_id}/attempts",
     response_model=GenerateResponse,
@@ -133,6 +152,14 @@ async def submit_brief(
             rate=GEMINI_35_FLASH_GLOBAL_STANDARD,
             grounding=grounding,
         )
+
+        revision = _initial_scene_revision(scene)
+        save_scene_revision(
+            db,
+            studio_project_id=project_id,
+            source_attempt_id=request.attempt_id,
+            revision=revision,
+        )
     except Conflict as error:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -158,5 +185,6 @@ async def submit_brief(
     return GenerateResponse(
         attempt_id=request.attempt_id,
         scene=scene,
+        revision=revision,
         grounding=grounding,
     )
