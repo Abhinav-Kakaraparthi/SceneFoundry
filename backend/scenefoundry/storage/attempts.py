@@ -7,6 +7,42 @@ from scenefoundry.domain.director_grounding import (
 )
 
 
+def find_latest_scene_attempt(
+    db: firestore.Client,
+    *,
+    studio_project_id: str,
+) -> str | None:
+    """Return the newest completed attempt containing a scene revision."""
+    if not re.fullmatch(
+        r"[A-Za-z0-9_-]{1,64}",
+        studio_project_id,
+    ):
+        raise ValueError("Invalid project identifier.")
+
+    attempts = db.collection(
+        "projects",
+        studio_project_id,
+        "attempts",
+    )
+    query = attempts.order_by(
+        "created_at",
+        direction=firestore.Query.DESCENDING,
+    ).limit(50)
+
+    for snapshot in query.stream(timeout=15):
+        if snapshot.get("status") != "succeeded":
+            continue
+        revision = next(
+            snapshot.reference.collection("scene_revisions")
+            .limit(1)
+            .stream(timeout=15),
+            None,
+        )
+        if revision is not None:
+            return snapshot.id
+
+    return None
+
 def create_attempt(
     db: firestore.Client,
     *,

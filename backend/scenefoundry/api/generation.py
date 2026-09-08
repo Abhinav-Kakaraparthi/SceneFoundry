@@ -23,6 +23,7 @@ from scenefoundry.domain.production_direction import (
     create_production_direction,
 )
 from scenefoundry.domain.scene import SceneSpec
+from scenefoundry.storage.attempts import find_latest_scene_attempt
 from scenefoundry.storage.projects import read_production_project
 from scenefoundry.storage.research import read_production_research
 from scenefoundry.storage.revisions import save_scene_revision
@@ -34,6 +35,14 @@ logger = logging.getLogger(__name__)
 
 DIRECTOR_RESERVATION_MICRO_USD = 50_000
 
+
+class LatestAttemptResponse(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+
+    attempt_id: str | None = Field(
+        default=None,
+        pattern=r"^[a-f0-9]{32}$",
+    )
 
 class GenerateRequest(BaseModel):
     model_config = ConfigDict(
@@ -151,6 +160,36 @@ def _load_production_direction(
 
     return create_production_direction(project)
 
+
+@router.get(
+    "/{project_id}/attempts/latest",
+    response_model=LatestAttemptResponse,
+)
+def read_latest_scene_attempt(
+    project_id: ResourceId,
+    current_user: CurrentUser,
+    db: Database,
+) -> LatestAttemptResponse:
+    registered = _require_registered_identity(db, current_user)
+
+    try:
+        read_production_project(
+            db,
+            project_id=project_id,
+            created_by=registered.uid,
+        )
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Production project not found.",
+        ) from error
+
+    return LatestAttemptResponse(
+        attempt_id=find_latest_scene_attempt(
+            db,
+            studio_project_id=project_id,
+        ),
+    )
 
 @router.post(
     "/{project_id}/attempts",

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { authenticatedFetch } from "./authSession";
 import type { VeoPreviewRecord } from "./VeoPreview";
 import type { AnimationRecord } from "./ShotAnimation";
 import type { PreviewRecord } from "./ShotPreview";
@@ -16,6 +17,9 @@ type Props = {
   onHome: () => void;
 };
 
+type LatestAttempt = {
+  attempt_id: string | null;
+};
 type Budget = {
   allowance_micro_usd: number;
   accounted_micro_usd: number;
@@ -58,7 +62,7 @@ async function readJson<T>(
   path: string,
   signal: AbortSignal,
 ): Promise<T> {
-  const response = await fetch(path, { signal });
+  const response = await authenticatedFetch(path, { signal });
   if (!response.ok) {
     throw new Error(
       `Could not load workspace data (HTTP ${response.status}).`,
@@ -85,6 +89,9 @@ export default function DirectorWorkspace({
   const [revision, setRevision] = useState(0);
   const [researchId, setResearchId] = useState<string | null>(null);
 
+  const [discoveringAttempt, setDiscoveringAttempt] = useState(
+    initialAttemptId === null,
+  );
   function selectAttempt(id: string) {
     const url = new URL(window.location.href);
     url.searchParams.set("attempt", id);
@@ -92,6 +99,43 @@ export default function DirectorWorkspace({
     setAttemptId(id);
   }
 
+  useEffect(() => {
+    if (attemptId) {
+      setDiscoveringAttempt(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    setDiscoveringAttempt(true);
+
+    readJson<LatestAttempt>(
+      `${basePath}/attempts/latest`,
+      controller.signal,
+    )
+      .then((result) => {
+        if (controller.signal.aborted) return;
+
+        if (result.attempt_id) {
+          selectAttempt(result.attempt_id);
+        } else {
+          setDiscoveringAttempt(false);
+        }
+      })
+      .catch((error: unknown) => {
+        if (controller.signal.aborted) return;
+
+        setDiscoveringAttempt(false);
+        setWorkspace({
+          status: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Saved production discovery failed.",
+        });
+      });
+
+    return () => controller.abort();
+  }, [attemptId, basePath]);
   useEffect(() => {
     if (!attemptId) {
       setWorkspace({ status: "idle" });
@@ -203,14 +247,16 @@ export default function DirectorWorkspace({
 
         <ScreenplayWorkspace projectId={projectId} />
 
-        <ProductionSetup
-          projectId={projectId}
-          selectedResearchId={researchId}
-          onSelected={setResearchId}
-          onCreated={selectAttempt}
-        />
+        {!discoveringAttempt && (
+          <ProductionSetup
+            projectId={projectId}
+            selectedResearchId={researchId}
+            onSelected={setResearchId}
+            onCreated={selectAttempt}
+          />
+        )}
 
-        {workspace.status === "idle" && (
+        {workspace.status === "idle" && !discoveringAttempt && (
           <div className="notice">
             <h2>No scene plan yet</h2>
             <p>
@@ -221,7 +267,7 @@ export default function DirectorWorkspace({
           </div>
         )}
 
-        {workspace.status === "loading" && (
+        {(workspace.status === "loading" || discoveringAttempt) && (
           <p role="status" className="notice">
             Loading saved production data…
           </p>
